@@ -124,16 +124,16 @@ function Index() {
             </p>
             <div className="mt-8 grid grid-cols-3 gap-3">
               <div className="glass rounded-2xl p-4">
-                <p className="font-display text-2xl font-bold text-cyan">120+</p>
-                <p className="mt-1 text-xs text-foreground/50">Courses mapped</p>
+                <p className="font-display text-sm font-bold text-cyan sm:text-base">Verified course information</p>
+                <p className="mt-1 text-xs text-foreground/50">Checked against published requirements</p>
               </div>
               <div className="glass rounded-2xl p-4">
-                <p className="font-display text-2xl font-bold text-foreground">6</p>
-                <p className="mt-1 text-xs text-foreground/50">Cities covered</p>
+                <p className="font-display text-sm font-bold text-foreground sm:text-base">Australian universities</p>
+                <p className="mt-1 text-xs text-foreground/50">Undergraduate programs nationwide</p>
               </div>
               <div className="glass rounded-2xl p-4">
-                <p className="font-display text-2xl font-bold text-mint">100%</p>
-                <p className="mt-1 text-xs text-foreground/50">Source-linked</p>
+                <p className="font-display text-sm font-bold text-mint sm:text-base">Official-source links</p>
+                <p className="mt-1 text-xs text-foreground/50">Every recommendation shows its source</p>
               </div>
             </div>
           </div>
