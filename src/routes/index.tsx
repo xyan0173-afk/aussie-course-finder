@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 export const Route = createFileRoute("/")({
@@ -48,17 +48,29 @@ const labelClass =
   "mb-2 block text-xs font-medium uppercase tracking-wider text-foreground/50";
 
 function Index() {
+  const navigate = useNavigate();
   const [academicScore, setAcademicScore] = useState("");
   const [ielts, setIelts] = useState("");
   const [mathsCompleted, setMathsCompleted] = useState<boolean | null>(null);
-  const [studyField, setStudyField] = useState(FIELDS[0]);
-  const [city, setCity] = useState(CITIES[0]);
-  const [budget, setBudget] = useState(BUDGETS[0]);
+  const [studyField, setStudyField] = useState(FIELDS[0] ?? "");
+  const [city, setCity] = useState(CITIES[0] ?? "");
+  const [budget, setBudget] = useState(BUDGETS[0] ?? "");
   const [careerInterest, setCareerInterest] = useState("");
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    // Matching logic arrives in a later phase — this page is profile input only.
+    navigate({
+      to: "/results",
+      search: {
+        academic: academicScore,
+        ielts,
+        maths: mathsCompleted === null ? "" : mathsCompleted ? "yes" : "no",
+        field: studyField,
+        city,
+        budget,
+        career: careerInterest,
+      },
+    });
   }
 
   return (

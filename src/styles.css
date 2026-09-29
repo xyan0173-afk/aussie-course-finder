@@ -17,6 +17,8 @@
   --color-brand: oklch(0.623 0.214 259.8);
   --color-cyan: oklch(0.789 0.134 215);
   --color-mint: oklch(0.784 0.149 168);
+  --color-warn: oklch(0.83 0.14 85);
+  --color-danger: oklch(0.72 0.19 22);
 }
 
 @utility glass {
