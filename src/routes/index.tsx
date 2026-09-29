@@ -26,6 +26,7 @@ export const Route = createFileRoute("/")({
 
 const FIELDS = [
   "Engineering",
+  "Information Technology",
   "Computer Science",
   "Business & Finance",
   "Health & Medicine",
@@ -158,7 +159,7 @@ function Index() {
                     maxLength={20}
                     value={academicScore}
                     onChange={(e) => setAcademicScore(e.target.value)}
-                    placeholder="e.g. 88% / Gaokao band"
+                    placeholder="e.g. 72% of Gaokao maximum"
                     className={inputClass}
                   />
                 </div>
@@ -291,7 +292,8 @@ function Index() {
 
               <p className="mt-4 text-center text-xs leading-relaxed text-foreground/40">
                 CourseCompass AU provides decision support based on published
-                university information. It does not guarantee admission.
+                university information. It does not guarantee admission. Final
+                admission decisions are made by universities.
               </p>
             </form>
           </div>
