@@ -52,9 +52,9 @@ function Index() {
   const [academicScore, setAcademicScore] = useState("");
   const [ielts, setIelts] = useState("");
   const [mathsCompleted, setMathsCompleted] = useState<boolean | null>(null);
-  const [studyField, setStudyField] = useState(FIELDS[0]);
-  const [city, setCity] = useState(CITIES[0]);
-  const [budget, setBudget] = useState(BUDGETS[0]);
+  const [studyField, setStudyField] = useState(FIELDS[0] ?? "");
+  const [city, setCity] = useState(CITIES[0] ?? "");
+  const [budget, setBudget] = useState(BUDGETS[0] ?? "");
   const [careerInterest, setCareerInterest] = useState("");
 
   function handleSubmit(event: React.FormEvent) {
