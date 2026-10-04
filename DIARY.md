@@ -46,3 +46,31 @@ The “Why this course?” explanation and “Official Source” sections were a
 
 ### Next step
 Collect beta feedback and decide which issue should be fixed first.
+
+## Week 9 Update
+
+## 4 October 2026
+
+### Beta Testing Feedback
+The Week 9 beta presentation provided a clearer direction for improving CourseCompass AU.
+
+One of the main issues identified was data freshness. The current beta uses university information that is manually collected and verified from official sources. However, university entry requirements, tuition fees and other course information may change over time.
+
+The feedback also highlighted that simply using automated web scraping may not be reliable because some university websites use bot detection or CAPTCHA.
+
+### Human Judgement
+We decided that the current MVP should not claim to provide real-time university data.
+
+Instead, the app should clearly show when the information was last checked and continue using “Needs Verification” when the information cannot be confidently confirmed.
+
+### Improvement Direction
+The next development focus will be to investigate more reliable ways of keeping university information up to date, including:
+
+- official APIs or data feeds where available;
+- scheduled checks of university information;
+- human verification before important data is updated;
+- a clear “last checked” date;
+- keeping “Needs Verification” as a fallback when the data cannot be confirmed.
+
+### Next Week Focus
+The main focus for next week will be improving the data update and verification process so that CourseCompass AU can provide more current and trustworthy information without relying on uncontrolled web scraping.
