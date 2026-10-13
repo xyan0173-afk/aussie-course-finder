@@ -1,5 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import {
+  FRESHNESS_META,
+  decideSourceFreshness,
+  aggregateCourseFreshness,
+  type FreshnessStatus,
+  type CheckResult,
+} from "../lib/freshness";
+import { MONITORED, sourceKey, type CourseId } from "../lib/freshness-data";
+import { runFreshnessCheck } from "../lib/freshness-check";
+import {
+  loadCheckResults,
+  saveCheckResults,
+  loadApprovedBaselines,
+  saveApprovedBaselines,
+  type StoredCheckResults,
+  type StoredBaselines,
+} from "../lib/freshness-storage";
 
 type Search = {
   academic: string;
@@ -12,8 +30,7 @@ type Search = {
 };
 
 function readSearch(search: Record<string, unknown>): Search {
-  const str = (key: string) =>
-    typeof search[key] === "string" ? (search[key] as string) : "";
+  const str = (key: string) => (typeof search[key] === "string" ? (search[key] as string) : "");
   return {
     academic: str("academic"),
     ielts: str("ielts"),
@@ -96,14 +113,22 @@ const COURSES: Course[] = [
     lastChecked: "29 September 2026",
     academic: (raw) => {
       const n = firstNumber(raw);
-      if (n === null) return { status: "verify", note: `No Gaokao percentage provided. ${VERIFY_TEXT}` };
+      if (n === null)
+        return { status: "verify", note: `No Gaokao percentage provided. ${VERIFY_TEXT}` };
       if (n > 100)
         return {
           status: "verify",
           note: `A raw score of ${n} can't be compared safely — Monash requires 65% of your province's official maximum Gaokao score (your score ÷ provincial maximum × 100). ${VERIFY_TEXT}`,
         };
-      if (n >= 65) return { status: "eligible", note: `${n}% meets the published 65% of maximum Gaokao score.` };
-      return { status: "not-met", note: `${n}% is below the published 65% of maximum Gaokao score.` };
+      if (n >= 65)
+        return {
+          status: "eligible",
+          note: `${n}% meets the published 65% of maximum Gaokao score.`,
+        };
+      return {
+        status: "not-met",
+        note: `${n}% is below the published 65% of maximum Gaokao score.`,
+      };
     },
     ielts: { overall: 6.5, band: 6.0 },
     requiresMaths: true,
@@ -166,7 +191,10 @@ const COURSES: Course[] = [
   },
 ];
 
-const STATUS_META: Record<Status, { label: string; short: string; text: string; dot: string; chip: string }> = {
+const STATUS_META: Record<
+  Status,
+  { label: string; short: string; text: string; dot: string; chip: string }
+> = {
   eligible: {
     label: "Appears Eligible Based on Published Requirements",
     short: "Appears Met",
@@ -191,24 +219,36 @@ const STATUS_META: Record<Status, { label: string; short: string; text: string; 
 };
 
 function ieltsResult(course: Course, raw: string): Check {
-  if (!course.ielts) return { status: "verify", note: `IELTS requirement not verified. ${VERIFY_TEXT}` };
+  if (!course.ielts)
+    return { status: "verify", note: `IELTS requirement not verified. ${VERIFY_TEXT}` };
   const { overall, band } = course.ielts;
   const n = firstNumber(raw);
-  if (n === null) return { status: "verify", note: `No IELTS score provided. Published: ${overall} overall, min ${band} each band.` };
+  if (n === null)
+    return {
+      status: "verify",
+      note: `No IELTS score provided. Published: ${overall} overall, min ${band} each band.`,
+    };
   if (n >= overall)
     return {
       status: "eligible",
       note: `${n} overall meets the published ${overall}. Each band must also be at least ${band}.`,
     };
-  return { status: "not-met", note: `${n} overall is below the published ${overall} (min ${band} each band).` };
+  return {
+    status: "not-met",
+    note: `${n} overall is below the published ${overall} (min ${band} each band).`,
+  };
 }
 
 function mathsResult(course: Course, maths: string): Check {
   if (course.requiresMaths === null)
     return { status: "verify", note: `Mathematics prerequisite not verified. ${VERIFY_TEXT}` };
   if (maths === "yes")
-    return { status: "eligible", note: "Mathematics completed. Confirm your subject matches the published prerequisite." };
-  if (maths === "no") return { status: "not-met", note: "A mathematics prerequisite applies to this course." };
+    return {
+      status: "eligible",
+      note: "Mathematics completed. Confirm your subject matches the published prerequisite.",
+    };
+  if (maths === "no")
+    return { status: "not-met", note: "A mathematics prerequisite applies to this course." };
   return { status: "verify", note: "Mathematics status not provided." };
 }
 
@@ -225,11 +265,21 @@ function budgetCap(raw: string): number | null {
 function budgetResult(course: Course, budget: string): BudgetCheck {
   const cap = budgetCap(budget);
   if (course.tuition === null)
-    return { label: "Needs Verification", tone: "verify", note: `Tuition not verified. ${VERIFY_TEXT}` };
+    return {
+      label: "Needs Verification",
+      tone: "verify",
+      note: `Tuition not verified. ${VERIFY_TEXT}`,
+    };
   const fee = `Indicative 2027 tuition A$${course.tuition.toLocaleString()}/yr`;
-  if (cap === null) return { label: "Needs Verification", tone: "verify", note: `${fee}. No budget provided.` };
-  if (course.tuition <= cap) return { label: "Within stated budget", tone: "eligible", note: `${fee}.` };
-  return { label: "Above stated budget", tone: "not-met", note: `${fee} — above your stated budget (${budget}).` };
+  if (cap === null)
+    return { label: "Needs Verification", tone: "verify", note: `${fee}. No budget provided.` };
+  if (course.tuition <= cap)
+    return { label: "Within stated budget", tone: "eligible", note: `${fee}.` };
+  return {
+    label: "Above stated budget",
+    tone: "not-met",
+    note: `${fee} — above your stated budget (${budget}).`,
+  };
 }
 
 // Budget is not an admissions requirement, so it does not affect overall status.
@@ -239,7 +289,14 @@ function overallStatus(results: Check[]): Status {
   return "eligible";
 }
 
-function explain(course: Course, p: Search, a: Check, i: Check, m: Check, b: BudgetCheck): string[] {
+function explain(
+  course: Course,
+  p: Search,
+  a: Check,
+  i: Check,
+  m: Check,
+  b: BudgetCheck,
+): string[] {
   const fieldMatch =
     p.field === "Information Technology" || p.field === "Computer Science"
       ? `Study field: this IT degree matches your preferred field (${p.field}).`
@@ -247,8 +304,7 @@ function explain(course: Course, p: Search, a: Check, i: Check, m: Check, b: Bud
   const cityMatch = course.cities.includes(p.city)
     ? `Location: ${course.location} matches your preferred city (${p.city}).`
     : `Location: ${course.location} — not your preferred city${p.city ? ` (${p.city})` : ""}.`;
-  const line = (label: string, c: Check) =>
-    `${label}: ${STATUS_META[c.status].short}. ${c.note}`;
+  const line = (label: string, c: Check) => `${label}: ${STATUS_META[c.status].short}. ${c.note}`;
   return [
     fieldMatch,
     cityMatch,
@@ -264,14 +320,26 @@ function explain(course: Course, p: Search, a: Check, i: Check, m: Check, b: Bud
 function StatusChip({ status }: { status: Status }) {
   const meta = STATUS_META[status];
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${meta.chip}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${meta.chip}`}
+    >
       <span className="size-1.5 shrink-0 rounded-full bg-current" />
       {meta.label}
     </span>
   );
 }
 
-function ResultRow({ label, status, statusLabel, note }: { label: string; status: Status; statusLabel?: string; note: string }) {
+function ResultRow({
+  label,
+  status,
+  statusLabel,
+  note,
+}: {
+  label: string;
+  status: Status;
+  statusLabel?: string;
+  note: string;
+}) {
   const meta = STATUS_META[status];
   return (
     <div className="flex items-start justify-between gap-4 py-2.5">
@@ -279,11 +347,31 @@ function ResultRow({ label, status, statusLabel, note }: { label: string; status
         <p className="text-[11px] uppercase tracking-[0.16em] text-foreground/40">{label}</p>
         <p className="mt-0.5 text-sm leading-snug text-foreground/70">{note}</p>
       </div>
-      <span className={`mt-0.5 inline-flex shrink-0 items-center gap-1.5 text-right text-xs font-medium ${meta.text}`}>
+      <span
+        className={`mt-0.5 inline-flex shrink-0 items-center gap-1.5 text-right text-xs font-medium ${meta.text}`}
+      >
         <span className={`size-1.5 rounded-full ${meta.dot}`} />
         {statusLabel ?? meta.short}
       </span>
     </div>
+  );
+}
+
+// ============= Data freshness (separate from eligibility) =============
+// Freshness answers "does our STORED data still match the official source?"
+// It is deliberately kept apart from the eligibility Status above. A detected
+// change only flags for human review and never edits any course fact.
+
+function FreshnessBadge({ status }: { status: FreshnessStatus }) {
+  const meta = FRESHNESS_META[status];
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${meta.chip}`}
+      title={meta.description}
+    >
+      <span className="size-1.5 shrink-0 rounded-full bg-current" />
+      {meta.label}
+    </span>
   );
 }
 
@@ -293,17 +381,108 @@ function Results() {
   const [openWhy, setOpenWhy] = useState<string | null>(null);
   const [openSource, setOpenSource] = useState<string | null>(null);
 
+  // --- Freshness state, persisted in localStorage (BETA/DEMO only) ---------
+  // Two concerns are kept separate on purpose:
+  //   checkResults      = what the automated checker fetched (machine).
+  //   approvedBaselines = fingerprints a HUMAN approved after review.
+  // Both are loaded from localStorage on mount so a check (and an approved
+  // baseline) survives a browser refresh. Production would use server storage.
+  const [checkResults, setCheckResults] = useState<StoredCheckResults>({});
+  const [approvedBaselines, setApprovedBaselines] = useState<StoredBaselines>({});
+  const [checking, setChecking] = useState(false);
+  const [checkError, setCheckError] = useState<string | null>(null);
+  const [lastRunAt, setLastRunAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    const stored = loadCheckResults();
+    setCheckResults(stored);
+    setApprovedBaselines(loadApprovedBaselines());
+    // Surface the most recent check timestamp across all courses, if any.
+    const times = Object.values(stored)
+      .map((r) => r?.lastSourceCheck)
+      .filter((t): t is string => Boolean(t));
+    if (times.length > 0) setLastRunAt(times.sort().at(-1) ?? null);
+  }, []);
+
+  // Build the full per-source + aggregated course view for one course id.
+  const freshnessFor = (id: string) => {
+    const monitored = MONITORED[id as CourseId];
+    if (!monitored) return null;
+
+    const sources = monitored.sources.map((src) => {
+      const key = sourceKey(id as CourseId, src.url);
+      const result: CheckResult | null = checkResults[key] ?? null;
+      const approvedBaseline = approvedBaselines[key] ?? null;
+      const status = decideSourceFreshness(result, approvedBaseline);
+      return {
+        label: src.label,
+        url: src.url,
+        status,
+        lastSourceCheck: result?.lastSourceCheck ?? null,
+        reason: result?.reason ?? null,
+        approvedBaseline,
+        // Approvable only when the page was actually fetched and does not
+        // already match the approved baseline. Approval is PER SOURCE.
+        canApprove:
+          result?.fetchedFingerprint != null && result.fetchedFingerprint !== approvedBaseline,
+      };
+    });
+
+    const status = aggregateCourseFreshness(sources.map((s) => s.status));
+    return { status, lastVerified: monitored.lastVerified, sources };
+  };
+
+  async function handleCheckNow() {
+    setChecking(true);
+    setCheckError(null);
+    try {
+      const report = await runFreshnessCheck();
+      const next: StoredCheckResults = { ...checkResults };
+      // Store one result PER SOURCE, keyed by courseId + url.
+      for (const item of report.items) next[sourceKey(item.courseId, item.url)] = item.result;
+      setCheckResults(next);
+      saveCheckResults(next); // persist across refresh (beta)
+      setLastRunAt(report.checkedAt);
+    } catch (err) {
+      // If the check mechanism itself fails, do not guess any status.
+      setCheckError(
+        err instanceof Error
+          ? err.message
+          : "The freshness check could not be completed. Please try again.",
+      );
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  // Human review action: approve the latest fetched fingerprint for ONE source
+  // as its trusted baseline. This is the ONLY way a source can become
+  // "Verified". It never changes any course fact or eligibility rule.
+  function handleApproveBaseline(courseId: CourseId, url: string) {
+    const key = sourceKey(courseId, url);
+    const result = checkResults[key];
+    if (!result?.fetchedFingerprint) return;
+    const next: StoredBaselines = { ...approvedBaselines, [key]: result.fetchedFingerprint };
+    setApprovedBaselines(next);
+    saveApprovedBaselines(next); // persist across refresh (beta)
+  }
+
   const summary = [
     { label: "Academic score", value: profile.academic || "—" },
     { label: "IELTS", value: profile.ielts || "—" },
-    { label: "Mathematics", value: profile.maths === "yes" ? "Yes" : profile.maths === "no" ? "No" : "—" },
+    {
+      label: "Mathematics",
+      value: profile.maths === "yes" ? "Yes" : profile.maths === "no" ? "No" : "—",
+    },
     { label: "Field", value: profile.field || "—" },
     { label: "City", value: profile.city || "—" },
     { label: "Budget", value: profile.budget || "—" },
     ...(profile.career ? [{ label: "Career interest", value: profile.career }] : []),
   ];
 
-  const asksAboutChances = /guarantee|definitely|chance|probability|admit|offer/i.test(profile.career);
+  const asksAboutChances = /guarantee|definitely|chance|probability|admit|offer/i.test(
+    profile.career,
+  );
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background font-sans text-foreground">
@@ -321,8 +500,12 @@ function Results() {
               C
             </div>
             <div className="min-w-0 leading-tight">
-              <p className="truncate font-display text-lg font-bold tracking-tight">CourseCompass AU</p>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-foreground/40">Undergraduate Explorer</p>
+              <p className="truncate font-display text-lg font-bold tracking-tight">
+                CourseCompass AU
+              </p>
+              <p className="text-[11px] uppercase tracking-[0.2em] text-foreground/40">
+                Undergraduate Explorer
+              </p>
             </div>
           </Link>
           <Link
@@ -337,7 +520,8 @@ function Results() {
           <div className="glass mt-16 rounded-3xl p-8 text-center sm:p-12">
             <h1 className="font-display text-2xl font-bold sm:text-3xl">No profile yet</h1>
             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-foreground/60">
-              Fill in your academic profile first, then we&rsquo;ll compare it with published course requirements.
+              Fill in your academic profile first, then we&rsquo;ll compare it with published course
+              requirements.
             </p>
             <Link
               to="/"
@@ -351,7 +535,9 @@ function Results() {
             <div className="mt-12">
               <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
                 Your Course{" "}
-                <span className="bg-gradient-to-r from-cyan to-mint bg-clip-text text-transparent">Matches</span>
+                <span className="bg-gradient-to-r from-cyan to-mint bg-clip-text text-transparent">
+                  Matches
+                </span>
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-relaxed text-foreground/60 sm:text-base">
                 We compared your profile with the published requirements for three Bachelor of
@@ -362,7 +548,10 @@ function Results() {
 
             <div className="mt-6 flex flex-wrap gap-2">
               {summary.map((item) => (
-                <span key={item.label} className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-xs text-foreground/70">
+                <span
+                  key={item.label}
+                  className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-xs text-foreground/70"
+                >
                   <span className="text-foreground/40">{item.label}:</span> {item.value}
                 </span>
               ))}
@@ -376,6 +565,141 @@ function Results() {
               </div>
             )}
 
+            {/* ===================== Data Freshness ===================== */}
+            <section className="glass mt-8 rounded-3xl p-6" aria-labelledby="freshness-heading">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h2 id="freshness-heading" className="font-display text-lg font-semibold">
+                    Data Freshness
+                  </h2>
+                  <p className="mt-1 max-w-2xl text-xs leading-relaxed text-foreground/60 sm:text-sm">
+                    We monitor whether each official source page has changed since our data was last
+                    verified by a person. A detected change only signals a <em>possible</em> source
+                    change — it never automatically updates admission requirements, IELTS, maths
+                    prerequisites or tuition. A course only shows “Verified” once a person reviews
+                    the source and approves it as the baseline.
+                  </p>
+                  <p className="mt-2 max-w-2xl text-[11px] leading-relaxed text-foreground/40">
+                    Beta note: check results and approved baselines are saved in this browser
+                    (localStorage) for the demo. A production version would store them on the
+                    server.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCheckNow}
+                  disabled={checking}
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-cyan px-5 py-2.5 font-display text-sm font-bold text-ink transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {checking ? "Checking sources…" : "Check official sources now"}
+                </button>
+              </div>
+
+              {lastRunAt && !checkError && (
+                <p className="mt-3 text-[11px] text-foreground/40">
+                  Last automated check run: {new Date(lastRunAt).toLocaleString()}
+                </p>
+              )}
+              {checkError && (
+                <p className="mt-3 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2.5 text-xs leading-relaxed text-danger">
+                  The source check could not be completed ({checkError}). Nothing was changed.
+                  Please verify sources manually or try again.
+                </p>
+              )}
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                {COURSES.map((course) => {
+                  const f = freshnessFor(course.id);
+                  if (!f) return null;
+                  return (
+                    <div
+                      key={course.id}
+                      className="rounded-2xl border border-white/10 bg-white/5 p-4"
+                    >
+                      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-cyan">
+                        {course.university}
+                      </p>
+                      <p className="mt-0.5 text-xs text-foreground/50">
+                        {course.code} · {f.sources.length}{" "}
+                        {f.sources.length === 1 ? "official source" : "official sources"}
+                      </p>
+
+                      {/* Aggregated course-level freshness */}
+                      <div className="mt-3">
+                        <FreshnessBadge status={f.status} />
+                      </div>
+                      <p className="mt-1 text-[11px] text-foreground/40">
+                        Course status reflects all sources below. Last verified: {f.lastVerified}
+                      </p>
+
+                      {/* Per-source breakdown */}
+                      <ul className="mt-3 space-y-2.5 border-t border-white/5 pt-3">
+                        {f.sources.map((s) => (
+                          <li
+                            key={s.url}
+                            className="rounded-xl border border-white/10 bg-white/5 p-3"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="min-w-0 text-xs font-medium text-foreground/80">
+                                {s.label}
+                              </p>
+                              <FreshnessBadge status={s.status} />
+                            </div>
+
+                            {s.status === "needs-review" && s.approvedBaseline === null && (
+                              <p className="mt-1.5 text-[11px] leading-snug text-warn">
+                                No verified baseline yet.
+                              </p>
+                            )}
+                            {s.reason && (
+                              <p className="mt-1.5 text-[11px] leading-snug text-foreground/55">
+                                {s.reason}
+                              </p>
+                            )}
+
+                            <dl className="mt-2 space-y-1 text-[11px] text-foreground/40">
+                              <div className="flex justify-between gap-2">
+                                <dt>Last source check</dt>
+                                <dd className="text-foreground/60">
+                                  {s.lastSourceCheck
+                                    ? new Date(s.lastSourceCheck).toLocaleString()
+                                    : "Not yet checked"}
+                                </dd>
+                              </div>
+                              <div className="flex justify-between gap-2">
+                                <dt>Approved baseline</dt>
+                                <dd className="text-foreground/60">
+                                  {s.approvedBaseline ? "Set by human review" : "None"}
+                                </dd>
+                              </div>
+                            </dl>
+
+                            {s.canApprove && (
+                              <button
+                                type="button"
+                                onClick={() => handleApproveBaseline(course.id as CourseId, s.url)}
+                                className="mt-2 w-full rounded-lg border border-mint/40 bg-mint/10 px-3 py-1.5 text-[11px] font-medium text-mint transition-colors hover:bg-mint/20"
+                              >
+                                Approve this source as verified baseline
+                              </button>
+                            )}
+                            <a
+                              href={s.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-2 inline-block break-words text-[11px] text-mint underline-offset-2 hover:underline"
+                            >
+                              Open official source ↗
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
             <div className="mt-8 grid gap-5 lg:grid-cols-3">
               {COURSES.map((course) => {
                 const academic = course.academic(profile.academic);
@@ -388,8 +712,12 @@ function Results() {
 
                 return (
                   <article key={course.id} className="glass flex flex-col rounded-3xl p-6">
-                    <p className="text-xs font-medium uppercase tracking-[0.16em] text-cyan">{course.university}</p>
-                    <h2 className="mt-1.5 font-display text-lg font-semibold leading-snug">{course.course}</h2>
+                    <p className="text-xs font-medium uppercase tracking-[0.16em] text-cyan">
+                      {course.university}
+                    </p>
+                    <h2 className="mt-1.5 font-display text-lg font-semibold leading-snug">
+                      {course.course}
+                    </h2>
                     <p className="mt-1 text-xs text-foreground/50">
                       {course.code} · {course.location} · {course.duration}
                     </p>
@@ -410,15 +738,41 @@ function Results() {
                     )}
 
                     <div className="mt-4 divide-y divide-white/5 border-t border-white/5">
-                      <ResultRow label="Academic requirement" status={academic.status} note={academic.note} />
-                      <ResultRow label="IELTS requirement" status={ielts.status} note={ielts.note} />
-                      <ResultRow label="Mathematics prerequisite" status={maths.status} note={maths.note} />
-                      <ResultRow label="Budget status" status={budget.tone} statusLabel={budget.label} note={budget.note} />
+                      <ResultRow
+                        label="Academic requirement"
+                        status={academic.status}
+                        note={academic.note}
+                      />
+                      <ResultRow
+                        label="IELTS requirement"
+                        status={ielts.status}
+                        note={ielts.note}
+                      />
+                      <ResultRow
+                        label="Mathematics prerequisite"
+                        status={maths.status}
+                        note={maths.note}
+                      />
+                      <ResultRow
+                        label="Budget status"
+                        status={budget.tone}
+                        statusLabel={budget.label}
+                        note={budget.note}
+                      />
                     </div>
 
                     <p className="mt-3 text-[11px] text-foreground/40">
                       Information status: {course.infoStatus} · Last checked: {course.lastChecked}
                     </p>
+                    {(() => {
+                      const f = freshnessFor(course.id);
+                      return f ? (
+                        <div className="mt-2 flex items-center gap-2">
+                          <span className="text-[11px] text-foreground/40">Data freshness:</span>
+                          <FreshnessBadge status={f.status} />
+                        </div>
+                      ) : null;
+                    })()}
 
                     {whyOpen && (
                       <ul className="mt-4 space-y-1.5 rounded-xl border border-cyan/25 bg-cyan/10 px-4 py-3 text-xs leading-relaxed text-foreground/75">
