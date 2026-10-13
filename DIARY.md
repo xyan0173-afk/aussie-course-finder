@@ -248,3 +248,119 @@ each cite one. Monitoring only the first source was unsafe.
 - `src/lib/freshness.ts`, `src/lib/freshness-data.ts`,
   `src/lib/source-check.server.ts`, `src/lib/freshness-check.ts`,
   `src/lib/freshness-storage.ts`, `src/routes/results.tsx`.
+
+## 13 October 2026 (update 4)
+
+### Goal
+Complete verified data coverage for Monash C2000 and Deakin S326, while leaving
+RMIT BP162 and the freshness architecture untouched.
+
+### Monash C2000
+- Expanded freshness coverage by adding a second official source: the Monash
+  China Gaokao entry requirements page
+  (https://www.monash.edu/admissions/entry-requirements/china-gaokao). This
+  source confirms the existing C2000 values (Gaokao 65%, English Level A =
+  IELTS 6.5 overall / 6.0 each band, Gaokao or Gao Er Mathematics prerequisite),
+  so no requirement values changed.
+- Updated the last-verified date to 13 October 2026. Tuition and the existing
+  course-page source are unchanged.
+- Freshness now monitors BOTH Monash sources independently.
+
+### Deakin S326
+- Replaced the intentionally incomplete beta placeholders with verified 2027
+  official data:
+  - tuition A$43,800/yr (2027);
+  - locations Burwood (Melbourne), Waurn Ponds (Geelong) and Online; cities used
+    for matching: Melbourne and Geelong;
+  - academic: Chinese Gaokao 60% of the provincial maximum;
+  - IELTS 6.0 overall with minimum 6.0 in each band;
+  - no separate mathematics prerequisite is listed, represented safely as
+    requiresMaths: false so maths never fails a Deakin applicant;
+  - infoStatus changed from "Needs Verification" to "Verified";
+  - last-verified date 13 October 2026.
+- Removed the old "not verified" caveat and replaced it with wording that the
+  data is based on verified 2027 official Deakin sources and that meeting the
+  minimum requirements does not guarantee admission.
+- Deakin freshness now monitors TWO official sources independently: the S326
+  course page and the Deakin 2027 International Course Guide (PDF).
+
+### Eligibility logic
+- Deakin academic: Gaokao ≥ 60% → Appears Met; < 60% → Not Met; invalid/unusable
+  score → Needs Verification.
+- Deakin IELTS: overall ≥ 6.0 and each band ≥ 6.0 → Appears Met; otherwise Not
+  Met.
+- Mathematics does not cause a Deakin applicant to fail (no listed prerequisite).
+- The "meeting minimum requirements does not guarantee admission" disclaimer is
+  retained.
+
+### Freshness / safety
+- Source counts now: Monash 2, RMIT 2 (unchanged), Deakin 2.
+- Per-source human approval is still required; a freshly fetched page is never
+  auto-verified, and the checker never auto-updates any course fact.
+- RMIT BP162 data and logic were left exactly as they were (confirmed by diff).
+
+### Verification
+- `npm run build` succeeds and lint passes.
+- Deakin academic, IELTS and maths logic were checked across representative
+  inputs (e.g. 60% met, 59% not met, invalid score needs verification, IELTS 6.0
+  met vs 5.5 not met, maths "no" does not fail).
+
+### Files changed
+- `src/routes/results.tsx`, `src/lib/freshness-data.ts`.
+
+## 13 October 2026 (update 5)
+
+### Goal
+Complete the freshness workflow for official sources that cannot be checked
+automatically, by adding a hybrid human-review fallback.
+
+### Why
+During real testing, both Monash C2000 official sources and both Deakin S326
+official sources returned HTTP 403 Forbidden to the automated checker (bot
+protection). RMIT BP162's two sources remained automatically accessible. So the
+automated-only model could not reach a confident status for Monash or Deakin,
+even though a person can open and review those pages directly.
+
+### What we added
+A per-source MANUAL verification fallback that is kept completely separate from
+automated monitoring:
+- New per-source metadata: `manualVerifiedAt` and `manualVerificationStatus`,
+  persisted in localStorage under a separate key (beta/demo mechanism, same as
+  the rest of the freshness persistence; production would use server storage).
+- For a source that could not be fetched automatically, the UI shows a
+  "Mark as manually verified" button. Pressing it records ONLY that a person
+  reviewed the official source. It does NOT create a fingerprint baseline, does
+  NOT change the automated check result, does NOT claim automated monitoring
+  succeeded, and does NOT modify any course fact.
+- Each source now displays both facts independently, e.g.:
+  - Automated monitoring: "Manual Verification Required — HTTP 403 Forbidden"
+  - Human review: "Verified manually on 13 October 2026"
+- Sources that ARE automatically accessible (RMIT) keep the existing
+  human-approved fingerprint baseline workflow unchanged.
+
+### Course-level wording
+- If one or more required sources cannot be monitored automatically but every
+  such source has been manually reviewed (and no accessible source needs
+  review), the course shows "Manually Verified / Automated Monitoring Limited"
+  instead of "Verified / Sources unchanged".
+- If an inaccessible source has NOT yet been manually reviewed, the course stays
+  "Manual Verification Required".
+
+### Separation / safety
+- Automated status and human-review status are stored and displayed separately
+  and never merged. Manual verification never upgrades the automated per-source
+  result; it only changes the course-level wording.
+- RMIT continues to demonstrate the full automated baseline-comparison workflow.
+- No course data or eligibility logic was changed; all existing source URLs are
+  preserved (confirmed by inspection: Monash 58940, RMIT 45120 with regional
+  caveat, Deakin 43800, and their requiresMaths/IELTS values are intact).
+
+### Verification
+- `npm run build` succeeds and lint passes.
+- The course-level aggregation was checked for all hybrid cases, including both
+  Monash/Deakin sources 403 + unreviewed (Manual Verification Required), both
+  reviewed (Manually Verified / Automated Monitoring Limited), and RMIT both
+  automatically verified (Verified / Sources unchanged).
+
+### Files changed
+- `src/lib/freshness.ts`, `src/lib/freshness-storage.ts`, `src/routes/results.tsx`.

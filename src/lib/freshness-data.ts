@@ -32,11 +32,15 @@ export type MonitoredCourse = {
 
 export const MONITORED: Record<CourseId, MonitoredCourse> = {
   "monash-c2000": {
-    lastVerified: "29 September 2026",
+    lastVerified: "13 October 2026",
     sources: [
       {
         label: "Monash course page (C2000)",
         url: "https://www.monash.edu/study/courses/find-a-course/information-technology-c2000?international=true",
+      },
+      {
+        label: "Monash China Gaokao entry requirements",
+        url: "https://www.monash.edu/admissions/entry-requirements/china-gaokao",
       },
     ],
   },
@@ -54,11 +58,15 @@ export const MONITORED: Record<CourseId, MonitoredCourse> = {
     ],
   },
   "deakin-s326": {
-    lastVerified: "29 September 2026",
+    lastVerified: "13 October 2026",
     sources: [
       {
-        label: "Deakin course page (S326)",
+        label: "Deakin Bachelor of Information Technology (S326)",
         url: "https://www.deakin.edu.au/course/bachelor-information-technology-international",
+      },
+      {
+        label: "Deakin 2027 International Course Guide",
+        url: "https://www.deakin.edu.au/__data/assets/pdf_file/0034/274669/deakin-international-course-guide.pdf",
       },
     ],
   },

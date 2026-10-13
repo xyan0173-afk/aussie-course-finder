@@ -25,15 +25,18 @@
 //   2. Human-APPROVED baselines (set only by an explicit human review action).
 // ============================================================================
 
-import type { CheckResult } from "./freshness";
+import type { CheckResult, ManualVerification } from "./freshness";
 
 const RESULTS_KEY = "ccau.freshness.checkResults.v2";
 const BASELINES_KEY = "ccau.freshness.approvedBaselines.v2";
+const MANUAL_KEY = "ccau.freshness.manualVerifications.v1";
 
 /** Keyed by sourceKey(courseId, url). */
 export type StoredCheckResults = Record<string, CheckResult>;
 /** Keyed by sourceKey(courseId, url) -> approved fingerprint. */
 export type StoredBaselines = Record<string, string>;
+/** Keyed by sourceKey(courseId, url) -> human review record. */
+export type StoredManualVerifications = Record<string, ManualVerification>;
 
 function readJson<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -74,4 +77,19 @@ export function loadApprovedBaselines(): StoredBaselines {
 
 export function saveApprovedBaselines(baselines: StoredBaselines): void {
   writeJson(BASELINES_KEY, baselines);
+}
+
+// ---- Human MANUAL verifications (hybrid fallback, set only by human action) -
+//
+// Stored under a SEPARATE key from both check results and approved baselines.
+// A manual verification records only that a person reviewed the official
+// source. It never creates a fingerprint baseline and never changes the
+// automated check result.
+
+export function loadManualVerifications(): StoredManualVerifications {
+  return readJson<StoredManualVerifications>(MANUAL_KEY, {});
+}
+
+export function saveManualVerifications(records: StoredManualVerifications): void {
+  writeJson(MANUAL_KEY, records);
 }

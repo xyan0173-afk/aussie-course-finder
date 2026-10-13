@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 
 import {
   FRESHNESS_META,
+  COURSE_DISPLAY_META,
   decideSourceFreshness,
-  aggregateCourseFreshness,
-  type FreshnessStatus,
+  aggregateCourseDisplay,
+  type CourseDisplayStatus,
   type CheckResult,
 } from "../lib/freshness";
 import { MONITORED, sourceKey, type CourseId } from "../lib/freshness-data";
@@ -15,8 +16,11 @@ import {
   saveCheckResults,
   loadApprovedBaselines,
   saveApprovedBaselines,
+  loadManualVerifications,
+  saveManualVerifications,
   type StoredCheckResults,
   type StoredBaselines,
+  type StoredManualVerifications,
 } from "../lib/freshness-storage";
 
 type Search = {
@@ -109,8 +113,12 @@ const COURSES: Course[] = [
         label: "Monash course page (C2000)",
         url: "https://www.monash.edu/study/courses/find-a-course/information-technology-c2000?international=true",
       },
+      {
+        label: "Monash China Gaokao entry requirements",
+        url: "https://www.monash.edu/admissions/entry-requirements/china-gaokao",
+      },
     ],
-    lastChecked: "29 September 2026",
+    lastChecked: "13 October 2026",
     academic: (raw) => {
       const n = firstNumber(raw);
       if (n === null)
@@ -168,26 +176,45 @@ const COURSES: Course[] = [
     university: "Deakin University",
     course: "Bachelor of Information Technology",
     code: "S326",
-    location: "Burwood, Melbourne / Waurn Ponds, Geelong",
-    cities: ["Melbourne"],
+    location: "Burwood, Melbourne / Waurn Ponds, Geelong / Online",
+    cities: ["Melbourne", "Geelong"],
     duration: "3 years full-time",
-    tuition: null,
-    infoStatus: "Needs Verification",
+    tuition: 43800,
+    infoStatus: "Verified",
     sources: [
       {
-        label: "Deakin course page (S326)",
+        label: "Deakin Bachelor of Information Technology (S326)",
         url: "https://www.deakin.edu.au/course/bachelor-information-technology-international",
       },
+      {
+        label: "Deakin 2027 International Course Guide",
+        url: "https://www.deakin.edu.au/__data/assets/pdf_file/0034/274669/deakin-international-course-guide.pdf",
+      },
     ],
-    lastChecked: "29 September 2026",
+    lastChecked: "13 October 2026",
     caveat:
-      "Needs Verification: China-specific entry requirements, IELTS, mathematics and tuition for this course have not been verified in our beta dataset yet. Please check the official Deakin source.",
-    academic: () => ({
-      status: "verify",
-      note: `China-specific academic requirements not yet verified. ${VERIFY_TEXT}`,
-    }),
-    ielts: null,
-    requiresMaths: null,
+      "Based on verified 2027 official Deakin sources. Meeting the published minimum requirements does not guarantee admission — final decisions are made by Deakin.",
+    academic: (raw) => {
+      const n = firstNumber(raw);
+      if (n === null)
+        return { status: "verify", note: `No Gaokao percentage provided. ${VERIFY_TEXT}` };
+      if (n > 100)
+        return {
+          status: "verify",
+          note: `A raw score of ${n} can't be compared safely — Deakin requires 60% of your province's official maximum Gaokao score (your score ÷ provincial maximum × 100). ${VERIFY_TEXT}`,
+        };
+      if (n >= 60)
+        return {
+          status: "eligible",
+          note: `${n}% meets the published 60% of maximum Gaokao score.`,
+        };
+      return {
+        status: "not-met",
+        note: `${n}% is below the published 60% of maximum Gaokao score.`,
+      };
+    },
+    ielts: { overall: 6.0, band: 6.0 },
+    requiresMaths: false,
   },
 ];
 
@@ -242,6 +269,11 @@ function ieltsResult(course: Course, raw: string): Check {
 function mathsResult(course: Course, maths: string): Check {
   if (course.requiresMaths === null)
     return { status: "verify", note: `Mathematics prerequisite not verified. ${VERIFY_TEXT}` };
+  if (course.requiresMaths === false)
+    return {
+      status: "eligible",
+      note: "No separate mathematics prerequisite is listed in the verified 2027 course requirements.",
+    };
   if (maths === "yes")
     return {
       status: "eligible",
@@ -362,8 +394,11 @@ function ResultRow({
 // It is deliberately kept apart from the eligibility Status above. A detected
 // change only flags for human review and never edits any course fact.
 
-function FreshnessBadge({ status }: { status: FreshnessStatus }) {
-  const meta = FRESHNESS_META[status];
+function FreshnessBadge({ status }: { status: CourseDisplayStatus }) {
+  const meta =
+    status === "manually-verified-limited"
+      ? COURSE_DISPLAY_META["manually-verified-limited"]
+      : FRESHNESS_META[status];
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${meta.chip}`}
@@ -389,6 +424,9 @@ function Results() {
   // baseline) survives a browser refresh. Production would use server storage.
   const [checkResults, setCheckResults] = useState<StoredCheckResults>({});
   const [approvedBaselines, setApprovedBaselines] = useState<StoredBaselines>({});
+  // Human MANUAL verifications — a hybrid fallback for sources that cannot be
+  // fetched automatically. Tracked separately from checkResults/baselines.
+  const [manualVerifications, setManualVerifications] = useState<StoredManualVerifications>({});
   const [checking, setChecking] = useState(false);
   const [checkError, setCheckError] = useState<string | null>(null);
   const [lastRunAt, setLastRunAt] = useState<string | null>(null);
@@ -397,6 +435,7 @@ function Results() {
     const stored = loadCheckResults();
     setCheckResults(stored);
     setApprovedBaselines(loadApprovedBaselines());
+    setManualVerifications(loadManualVerifications());
     // Surface the most recent check timestamp across all courses, if any.
     const times = Object.values(stored)
       .map((r) => r?.lastSourceCheck)
@@ -414,6 +453,7 @@ function Results() {
       const result: CheckResult | null = checkResults[key] ?? null;
       const approvedBaseline = approvedBaselines[key] ?? null;
       const status = decideSourceFreshness(result, approvedBaseline);
+      const manual = manualVerifications[key] ?? null;
       return {
         label: src.label,
         url: src.url,
@@ -425,10 +465,19 @@ function Results() {
         // already match the approved baseline. Approval is PER SOURCE.
         canApprove:
           result?.fetchedFingerprint != null && result.fetchedFingerprint !== approvedBaseline,
+        // Human review (hybrid fallback) — kept separate from the automated
+        // status above. A source can be marked manually verified only when it
+        // could NOT be fetched automatically.
+        manualVerifiedAt: manual?.manualVerifiedAt ?? null,
+        canMarkManual: status === "manual-verification",
       };
     });
 
-    const status = aggregateCourseFreshness(sources.map((s) => s.status));
+    // Course-level status layers manual review on top of the automated
+    // aggregation (never upgrades the automated per-source result itself).
+    const status: CourseDisplayStatus = aggregateCourseDisplay(
+      sources.map((s) => ({ automated: s.status, manuallyVerified: s.manualVerifiedAt !== null })),
+    );
     return { status, lastVerified: monitored.lastVerified, sources };
   };
 
@@ -465,6 +514,23 @@ function Results() {
     const next: StoredBaselines = { ...approvedBaselines, [key]: result.fetchedFingerprint };
     setApprovedBaselines(next);
     saveApprovedBaselines(next); // persist across refresh (beta)
+  }
+
+  // Human review action for sources that CANNOT be fetched automatically
+  // (e.g. HTTP 403). This records ONLY that a person reviewed the official
+  // source. It does NOT create a fingerprint baseline, does NOT change the
+  // automated check result, and does NOT modify any course fact.
+  function handleMarkManuallyVerified(courseId: CourseId, url: string) {
+    const key = sourceKey(courseId, url);
+    const next: StoredManualVerifications = {
+      ...manualVerifications,
+      [key]: {
+        manualVerifiedAt: new Date().toISOString(),
+        manualVerificationStatus: "verified",
+      },
+    };
+    setManualVerifications(next);
+    saveManualVerifications(next); // persist across refresh (beta)
   }
 
   const summary = [
@@ -639,23 +705,41 @@ function Results() {
                             key={s.url}
                             className="rounded-xl border border-white/10 bg-white/5 p-3"
                           >
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="min-w-0 text-xs font-medium text-foreground/80">
-                                {s.label}
+                            <p className="min-w-0 text-xs font-medium text-foreground/80">
+                              {s.label}
+                            </p>
+
+                            {/* Automated monitoring (fingerprint-based) */}
+                            <div className="mt-2">
+                              <p className="text-[10px] uppercase tracking-[0.14em] text-foreground/35">
+                                Automated monitoring
                               </p>
-                              <FreshnessBadge status={s.status} />
+                              <div className="mt-1">
+                                <FreshnessBadge status={s.status} />
+                              </div>
+                              {s.status === "needs-review" && s.approvedBaseline === null && (
+                                <p className="mt-1 text-[11px] leading-snug text-warn">
+                                  No verified baseline yet.
+                                </p>
+                              )}
+                              {s.reason && (
+                                <p className="mt-1 text-[11px] leading-snug text-foreground/55">
+                                  {s.reason}
+                                </p>
+                              )}
                             </div>
 
-                            {s.status === "needs-review" && s.approvedBaseline === null && (
-                              <p className="mt-1.5 text-[11px] leading-snug text-warn">
-                                No verified baseline yet.
+                            {/* Human review (hybrid fallback) — separate fact */}
+                            <div className="mt-2.5">
+                              <p className="text-[10px] uppercase tracking-[0.14em] text-foreground/35">
+                                Human review
                               </p>
-                            )}
-                            {s.reason && (
-                              <p className="mt-1.5 text-[11px] leading-snug text-foreground/55">
-                                {s.reason}
+                              <p className="mt-1 text-[11px] leading-snug text-foreground/60">
+                                {s.manualVerifiedAt
+                                  ? `Verified manually on ${new Date(s.manualVerifiedAt).toLocaleDateString()}`
+                                  : "Not manually reviewed"}
                               </p>
-                            )}
+                            </div>
 
                             <dl className="mt-2 space-y-1 text-[11px] text-foreground/40">
                               <div className="flex justify-between gap-2">
@@ -674,6 +758,7 @@ function Results() {
                               </div>
                             </dl>
 
+                            {/* Accessible source: automated baseline approval */}
                             {s.canApprove && (
                               <button
                                 type="button"
@@ -681,6 +766,18 @@ function Results() {
                                 className="mt-2 w-full rounded-lg border border-mint/40 bg-mint/10 px-3 py-1.5 text-[11px] font-medium text-mint transition-colors hover:bg-mint/20"
                               >
                                 Approve this source as verified baseline
+                              </button>
+                            )}
+                            {/* Inaccessible source: record human review only */}
+                            {s.canMarkManual && !s.manualVerifiedAt && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleMarkManuallyVerified(course.id as CourseId, s.url)
+                                }
+                                className="mt-2 w-full rounded-lg border border-cyan/40 bg-cyan/10 px-3 py-1.5 text-[11px] font-medium text-cyan transition-colors hover:bg-cyan/20"
+                              >
+                                Mark as manually verified
                               </button>
                             )}
                             <a

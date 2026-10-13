@@ -63,6 +63,28 @@ export type CheckResult = {
 export type SourceCheckOutcome =
   { kind: "fetched"; fingerprint: string } | { kind: "error"; reason: string };
 
+/**
+ * HUMAN REVIEW record for a source — a hybrid fallback for sources that cannot
+ * be fetched automatically (e.g. HTTP 403). It is tracked COMPLETELY SEPARATELY
+ * from the automated check result: recording a manual verification does NOT
+ * create a fingerprint baseline, does NOT change the automated result, and does
+ * NOT modify any course fact. It only records that a person opened and reviewed
+ * the official source.
+ */
+export type ManualVerification = {
+  /** ISO timestamp when a person recorded that they reviewed the source. */
+  manualVerifiedAt: string;
+  /** Currently only "verified" is recorded; kept as a field for future states. */
+  manualVerificationStatus: "verified";
+};
+
+/**
+ * Course-level DISPLAY status. This is a superset of FreshnessStatus with one
+ * extra value used only for aggregation when automated monitoring is limited
+ * but a human has reviewed the inaccessible source(s).
+ */
+export type CourseDisplayStatus = FreshnessStatus | "manually-verified-limited";
+
 /** Display metadata, mirroring the STATUS_META pattern used for eligibility. */
 export const FRESHNESS_META: Record<
   FreshnessStatus,
@@ -102,6 +124,26 @@ export const FRESHNESS_META: Record<
     chip: "border-danger/40 bg-danger/10 text-danger",
     description:
       "At least one official source could not be reached or read (e.g. CAPTCHA, bot protection, timeout, HTTP 403, or network error). We do not guess — a person must check that source directly.",
+  },
+};
+
+/**
+ * Display metadata for the COURSE-LEVEL hybrid status. Kept separate from
+ * FRESHNESS_META (which covers per-source automated statuses) because this
+ * value only ever applies to an aggregated course.
+ */
+export const COURSE_DISPLAY_META: Record<
+  "manually-verified-limited",
+  { label: string; short: string; text: string; dot: string; chip: string; description: string }
+> = {
+  "manually-verified-limited": {
+    label: "Manually Verified / Automated Monitoring Limited",
+    short: "Manually Verified",
+    text: "text-cyan",
+    dot: "bg-cyan",
+    chip: "border-cyan/40 bg-cyan/10 text-cyan",
+    description:
+      "The data has been reviewed by a person, but one or more official sources cannot be monitored automatically (e.g. HTTP 403). Automated change-detection is limited for this course; a person confirmed the sources directly.",
   },
 };
 
@@ -150,6 +192,55 @@ export function aggregateCourseFreshness(statuses: FreshnessStatus[]): Freshness
   // confirmed yet -> treat the course as needing review, not verified.
   if (statuses.some((s) => s === "not-checked")) return "needs-review";
   return "verified";
+}
+
+/**
+ * Per-source view combining the AUTOMATED status with whether a human has
+ * manually reviewed that source. The two facts stay separate.
+ */
+export type SourceDisplay = {
+  /** Automated monitoring status (fingerprint-based). */
+  automated: FreshnessStatus;
+  /** True when a person recorded a manual verification for this source. */
+  manuallyVerified: boolean;
+};
+
+/**
+ * COURSE-LEVEL display status that layers manual review on top of the automated
+ * aggregation. This NEVER upgrades the automated result; it only changes the
+ * course-level WORDING when inaccessible sources have been human-reviewed.
+ *
+ * Rules (requirements 6 and 7):
+ *   - If every source is automatically "verified" (no manual fallback needed)
+ *     -> "verified" (unchanged behaviour; RMIT path).
+ *   - If some sources could not be monitored automatically ("manual
+ *     -verification") but ALL such sources have been manually reviewed, AND no
+ *     source is in a worse state (needs-review / not-checked) ->
+ *     "manually-verified-limited".
+ *   - If any inaccessible source has NOT been manually reviewed ->
+ *     "manual-verification".
+ *   - Otherwise fall back to the plain automated aggregation.
+ */
+export function aggregateCourseDisplay(sources: SourceDisplay[]): CourseDisplayStatus {
+  const automatedOnly = aggregateCourseFreshness(sources.map((s) => s.automated));
+
+  // Only consider the hybrid wording when automated monitoring is the limiting
+  // factor (i.e. the automated aggregate is "manual-verification").
+  if (automatedOnly !== "manual-verification") return automatedOnly;
+
+  const inaccessible = sources.filter((s) => s.automated === "manual-verification");
+  const everyInaccessibleReviewed = inaccessible.every((s) => s.manuallyVerified);
+
+  // Every other (accessible) source must be at least "verified" so we don't
+  // mask a real "needs-review" elsewhere.
+  const othersOk = sources
+    .filter((s) => s.automated !== "manual-verification")
+    .every((s) => s.automated === "verified");
+
+  if (everyInaccessibleReviewed && othersOk) return "manually-verified-limited";
+
+  // At least one inaccessible source has not been manually reviewed.
+  return "manual-verification";
 }
 
 /**
