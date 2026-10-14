@@ -14,7 +14,7 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 //   override is ignored, so Lovable sync keeps working unchanged.
 // - Allow an explicit NITRO_PRESET/SERVER_PRESET env var to win (e.g. if you
 //   later deploy elsewhere) and otherwise default to "vercel" for Assessment 3.
-const deployPreset = process.env.NITRO_PRESET ?? process.env.SERVER_PRESET ?? "vercel";
+const deployPreset = process.env["NITRO_PRESET"] ?? process.env["SERVER_PRESET"] ?? "vercel";
 
 export default defineConfig({
   // Hard-pin the deploy target so a build on Vercel's CI is deterministic.

@@ -364,3 +364,26 @@ automated monitoring:
 
 ### Files changed
 - `src/lib/freshness.ts`, `src/lib/freshness-storage.ts`, `src/routes/results.tsx`.
+
+## 14 October 2026
+
+### Vercel deployment: dependency security fix
+- The first attempt to deploy CourseCompass AU to Vercel was blocked because the
+  installed TanStack React Start / Start Server Core versions were flagged for a
+  dependency security issue.
+- We chose the minimum compatible patched upgrade rather than changing any
+  application behaviour: `@tanstack/react-start` 1.168.32 → 1.168.61, which
+  brings `@tanstack/start-server-core` up to 1.169.40.
+- The upgrade exposed a `@tanstack/router-core` version mismatch (an old 1.171.15
+  copy alongside the required 1.171.35), which caused missing-export build
+  errors. We resolved it by aligning the related versions: `@tanstack/react
+  -router` → 1.170.42 and `@tanstack/router-plugin` → 1.168.43, leaving a single
+  router-core.
+- `npm run build` and `npx tsc --noEmit` now pass. One small, behaviour
+  -preserving compatibility fix was needed in `__root.tsx` (the router now types
+  the error boundary's `error` as `unknown`), plus a tsconfig-friendly bracket
+  access in `vite.config.ts`.
+- Course data, eligibility logic, freshness logic and manual-verification
+  behaviour were NOT changed.
+- The final result still needs to be verified by a successful live Vercel
+  deployment.
