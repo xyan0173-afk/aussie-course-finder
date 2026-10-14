@@ -1,0 +1,17 @@
+# Files Vercel does not need to upload for the build.
+# Vercel runs `npm install` + the build script itself, so skip local artifacts.
+node_modules
+.output
+.nitro
+.wrangler
+.vercel
+.dev.vars
+*.local
+
+# Logs
+*.log
+
+# Editor / OS cruft
+.vscode
+.idea
+.DS_Store
