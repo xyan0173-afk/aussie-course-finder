@@ -388,7 +388,7 @@ automated monitoring:
 - The final result still needs to be verified by a successful live Vercel
   deployment.
 
-## 14 October 2026 (final MVP validation)
+## 18 October 2026 (final MVP validation)
 
 ### Preferred-field filtering bug
 - During final regression testing we tested a non-IT preferred field (e.g.
@@ -459,3 +459,82 @@ automated monitoring:
 - We decided to keep budget as an affordability indicator rather than an
   admission eligibility criterion.
 - No code change was required for the budget logic.
+
+## 18 October 2026 (final regression testing)
+
+This was internal regression testing conducted by the development team, not
+external user testing.
+
+### 1. Preferred Field scope validation
+- Testing found that unsupported study fields could previously be selected even
+  though the verified dataset only contained Information Technology courses.
+- The MVP scope was refined so Preferred Field is now limited to Information
+  Technology.
+- The interface clearly states: "Current MVP coverage: Information Technology
+  only."
+- This was a deliberate human design decision to avoid implying unsupported
+  coverage.
+
+### 2. Preferred City validation
+- Testing found that the selected city was previously displayed in the student
+  profile but was not actually applied to course filtering.
+- Adelaide incorrectly returned Melbourne-based courses.
+- City filtering was corrected.
+- Melbourne returns Monash, RMIT and Deakin.
+- Geelong returns Deakin only.
+- Adelaide and Sydney return no local verified courses.
+- No fake courses were added for unsupported locations.
+
+### 3. Budget validation
+- A profile with an annual budget under A$30,000 was tested.
+- All three current courses have tuition above this budget.
+- The system correctly kept the courses visible but labelled them "Above stated
+  budget."
+- Budget remains an affordability indicator, not an admission eligibility
+  criterion.
+- No code change was required for this logic.
+
+### 4. Lower-entry-profile regression test
+Test profile:
+- Academic score: 60
+- IELTS: 6.0
+- Maths: No
+- Field: Information Technology
+- City: Melbourne
+- Budget: A$45,000–60,000
+
+Results:
+- Monash: Requirement Not Met
+- RMIT: Requirement Not Met, with academic verification caveat
+- Deakin: Appears Eligible Based on Published Requirements
+
+This confirmed that different published requirements produce different outcomes.
+
+### 5. High-condition-profile regression test
+Test profile:
+- Academic score: 80
+- IELTS: 6.5
+- Maths: Yes
+- Field: Information Technology
+- City: Melbourne
+- Budget: A$60,000+
+
+Results:
+- Monash: Appears Eligible Based on Published Requirements
+- RMIT: academic requirement still remains subject to regional equivalency
+  verification rather than being automatically treated as confirmed
+- Deakin: Appears Eligible Based on Published Requirements
+- All three courses were within the stated budget
+
+This confirmed that the system does not convert uncertain information into a
+confident eligibility decision simply because the applicant has a stronger
+profile.
+
+### 6. Validation conclusion
+- Final regression testing covered field scope, city filtering, unsupported
+  locations, affordability, lower-condition and higher-condition profiles.
+- The main issues discovered during testing were preferred-field scope and city
+  filtering.
+- Both were corrected and re-tested.
+- Existing verified course facts, academic thresholds, IELTS logic, mathematics
+  logic, freshness monitoring and manual-verification workflows were not changed.
