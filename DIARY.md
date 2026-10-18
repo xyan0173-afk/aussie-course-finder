@@ -387,3 +387,38 @@ automated monitoring:
   behaviour were NOT changed.
 - The final result still needs to be verified by a successful live Vercel
   deployment.
+
+## 14 October 2026 (final MVP validation)
+
+### Preferred-field filtering bug
+- During final regression testing we tested a non-IT preferred field (e.g.
+  Business).
+- We found that the selected field was displayed correctly in the student
+  profile, but the recommendation logic still returned the three verified IT
+  courses.
+- This created a mismatch between the user's stated preference and the
+  recommendations shown.
+
+### Human judgement
+- We decided NOT to fabricate Business or other course data, because the
+  verified MVP dataset currently contains only selected undergraduate
+  Information Technology courses.
+- Instead, the preferred-field filtering logic was corrected with a minimal
+  change in `src/routes/results.tsx`.
+
+### Result
+- Non-IT fields now return a transparent empty state that explains the current
+  MVP coverage ("No verified courses are currently available for this field" /
+  "CourseCompass AU currently covers selected undergraduate Information
+  Technology courses only"), with the student's profile still visible.
+- Selecting Information Technology still returns the existing Monash (C2000),
+  RMIT (BP162) and Deakin (S326) courses, unchanged.
+- Existing course facts, eligibility rules, IELTS/maths/budget logic, the data
+  freshness monitoring system and the manual-verification workflow were NOT
+  changed.
+- `npm run build` and `npx tsc --noEmit` both passed.
+
+### Reflection
+- This fix is evidence of human validation and refinement: we caught and
+  corrected a real preference/recommendation mismatch rather than blindly
+  accepting the existing AI-built behaviour.

@@ -797,135 +797,156 @@ function Results() {
               </div>
             </section>
 
-            <div className="mt-8 grid gap-5 lg:grid-cols-3">
-              {COURSES.map((course) => {
-                const academic = course.academic(profile.academic);
-                const ielts = ieltsResult(course, profile.ielts);
-                const maths = mathsResult(course, profile.maths);
-                const budget = budgetResult(course, profile.budget);
-                const overall = overallStatus([academic, ielts, maths]);
-                const whyOpen = openWhy === course.id;
-                const sourceOpen = openSource === course.id;
+            {/* The verified MVP dataset only contains Information Technology
+                courses, so only show them when IT is the selected field. */}
+            {profile.field !== "Information Technology" ? (
+              <div className="glass mt-8 rounded-3xl p-8 text-center sm:p-10">
+                <h2 className="font-display text-xl font-bold sm:text-2xl">
+                  No verified courses are currently available for this field.
+                </h2>
+                <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-foreground/60">
+                  CourseCompass AU currently covers selected undergraduate Information Technology
+                  courses only{profile.field ? ` — not ${profile.field}` : ""}. Try selecting
+                  Information Technology as your preferred field to see verified matches.
+                </p>
+                <Link
+                  to="/"
+                  className="mt-7 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-brand to-cyan px-6 py-3 font-display text-sm font-bold text-ink transition hover:brightness-110"
+                >
+                  Adjust my profile
+                </Link>
+              </div>
+            ) : (
+              <div className="mt-8 grid gap-5 lg:grid-cols-3">
+                {COURSES.map((course) => {
+                  const academic = course.academic(profile.academic);
+                  const ielts = ieltsResult(course, profile.ielts);
+                  const maths = mathsResult(course, profile.maths);
+                  const budget = budgetResult(course, profile.budget);
+                  const overall = overallStatus([academic, ielts, maths]);
+                  const whyOpen = openWhy === course.id;
+                  const sourceOpen = openSource === course.id;
 
-                return (
-                  <article key={course.id} className="glass flex flex-col rounded-3xl p-6">
-                    <p className="text-xs font-medium uppercase tracking-[0.16em] text-cyan">
-                      {course.university}
-                    </p>
-                    <h2 className="mt-1.5 font-display text-lg font-semibold leading-snug">
-                      {course.course}
-                    </h2>
-                    <p className="mt-1 text-xs text-foreground/50">
-                      {course.code} · {course.location} · {course.duration}
-                    </p>
-                    <p className="mt-1 text-xs text-foreground/50">
-                      {course.tuition !== null
-                        ? `Indicative 2027 tuition A$${course.tuition.toLocaleString()}/yr`
-                        : "Tuition: needs verification"}
-                    </p>
-
-                    <div className="mt-4">
-                      <StatusChip status={overall} />
-                    </div>
-
-                    {course.caveat && (
-                      <p className="mt-4 rounded-xl border border-warn/30 bg-warn/10 px-3 py-2.5 text-xs leading-relaxed text-warn">
-                        {course.caveat}
+                  return (
+                    <article key={course.id} className="glass flex flex-col rounded-3xl p-6">
+                      <p className="text-xs font-medium uppercase tracking-[0.16em] text-cyan">
+                        {course.university}
                       </p>
-                    )}
+                      <h2 className="mt-1.5 font-display text-lg font-semibold leading-snug">
+                        {course.course}
+                      </h2>
+                      <p className="mt-1 text-xs text-foreground/50">
+                        {course.code} · {course.location} · {course.duration}
+                      </p>
+                      <p className="mt-1 text-xs text-foreground/50">
+                        {course.tuition !== null
+                          ? `Indicative 2027 tuition A$${course.tuition.toLocaleString()}/yr`
+                          : "Tuition: needs verification"}
+                      </p>
 
-                    <div className="mt-4 divide-y divide-white/5 border-t border-white/5">
-                      <ResultRow
-                        label="Academic requirement"
-                        status={academic.status}
-                        note={academic.note}
-                      />
-                      <ResultRow
-                        label="IELTS requirement"
-                        status={ielts.status}
-                        note={ielts.note}
-                      />
-                      <ResultRow
-                        label="Mathematics prerequisite"
-                        status={maths.status}
-                        note={maths.note}
-                      />
-                      <ResultRow
-                        label="Budget status"
-                        status={budget.tone}
-                        statusLabel={budget.label}
-                        note={budget.note}
-                      />
-                    </div>
-
-                    <p className="mt-3 text-[11px] text-foreground/40">
-                      Information status: {course.infoStatus} · Last checked: {course.lastChecked}
-                    </p>
-                    {(() => {
-                      const f = freshnessFor(course.id);
-                      return f ? (
-                        <div className="mt-2 flex items-center gap-2">
-                          <span className="text-[11px] text-foreground/40">Data freshness:</span>
-                          <FreshnessBadge status={f.status} />
-                        </div>
-                      ) : null;
-                    })()}
-
-                    {whyOpen && (
-                      <ul className="mt-4 space-y-1.5 rounded-xl border border-cyan/25 bg-cyan/10 px-4 py-3 text-xs leading-relaxed text-foreground/75">
-                        {explain(course, profile, academic, ielts, maths, budget).map((l) => (
-                          <li key={l}>{l}</li>
-                        ))}
-                        <li className="text-foreground/50">
-                          Meeting published minimums does not mean you will receive an offer.
-                        </li>
-                      </ul>
-                    )}
-                    {sourceOpen && (
-                      <div className="mt-4 space-y-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs leading-relaxed text-foreground/60">
-                        {course.sources.map((s) => (
-                          <a
-                            key={s.url}
-                            href={s.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block break-words text-mint underline-offset-2 hover:underline"
-                          >
-                            {s.label} ↗
-                          </a>
-                        ))}
-                        <p>Last checked: {course.lastChecked}</p>
+                      <div className="mt-4">
+                        <StatusChip status={overall} />
                       </div>
-                    )}
 
-                    <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
-                      <button
-                        type="button"
-                        aria-expanded={whyOpen}
-                        onClick={() => {
-                          setOpenWhy(whyOpen ? null : course.id);
-                          setOpenSource(null);
-                        }}
-                        className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs font-medium text-foreground/80 transition-colors hover:border-cyan/50 hover:text-cyan"
-                      >
-                        {whyOpen ? "Hide details" : "Why this course?"}
-                      </button>
-                      <button
-                        type="button"
-                        aria-expanded={sourceOpen}
-                        onClick={() => {
-                          setOpenSource(sourceOpen ? null : course.id);
-                          setOpenWhy(null);
-                        }}
-                        className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs font-medium text-foreground/80 transition-colors hover:border-mint/50 hover:text-mint"
-                      >
-                        {sourceOpen ? "Hide source" : "Official Source"}
-                      </button>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
+                      {course.caveat && (
+                        <p className="mt-4 rounded-xl border border-warn/30 bg-warn/10 px-3 py-2.5 text-xs leading-relaxed text-warn">
+                          {course.caveat}
+                        </p>
+                      )}
+
+                      <div className="mt-4 divide-y divide-white/5 border-t border-white/5">
+                        <ResultRow
+                          label="Academic requirement"
+                          status={academic.status}
+                          note={academic.note}
+                        />
+                        <ResultRow
+                          label="IELTS requirement"
+                          status={ielts.status}
+                          note={ielts.note}
+                        />
+                        <ResultRow
+                          label="Mathematics prerequisite"
+                          status={maths.status}
+                          note={maths.note}
+                        />
+                        <ResultRow
+                          label="Budget status"
+                          status={budget.tone}
+                          statusLabel={budget.label}
+                          note={budget.note}
+                        />
+                      </div>
+
+                      <p className="mt-3 text-[11px] text-foreground/40">
+                        Information status: {course.infoStatus} · Last checked: {course.lastChecked}
+                      </p>
+                      {(() => {
+                        const f = freshnessFor(course.id);
+                        return f ? (
+                          <div className="mt-2 flex items-center gap-2">
+                            <span className="text-[11px] text-foreground/40">Data freshness:</span>
+                            <FreshnessBadge status={f.status} />
+                          </div>
+                        ) : null;
+                      })()}
+
+                      {whyOpen && (
+                        <ul className="mt-4 space-y-1.5 rounded-xl border border-cyan/25 bg-cyan/10 px-4 py-3 text-xs leading-relaxed text-foreground/75">
+                          {explain(course, profile, academic, ielts, maths, budget).map((l) => (
+                            <li key={l}>{l}</li>
+                          ))}
+                          <li className="text-foreground/50">
+                            Meeting published minimums does not mean you will receive an offer.
+                          </li>
+                        </ul>
+                      )}
+                      {sourceOpen && (
+                        <div className="mt-4 space-y-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs leading-relaxed text-foreground/60">
+                          {course.sources.map((s) => (
+                            <a
+                              key={s.url}
+                              href={s.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block break-words text-mint underline-offset-2 hover:underline"
+                            >
+                              {s.label} ↗
+                            </a>
+                          ))}
+                          <p>Last checked: {course.lastChecked}</p>
+                        </div>
+                      )}
+
+                      <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
+                        <button
+                          type="button"
+                          aria-expanded={whyOpen}
+                          onClick={() => {
+                            setOpenWhy(whyOpen ? null : course.id);
+                            setOpenSource(null);
+                          }}
+                          className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs font-medium text-foreground/80 transition-colors hover:border-cyan/50 hover:text-cyan"
+                        >
+                          {whyOpen ? "Hide details" : "Why this course?"}
+                        </button>
+                        <button
+                          type="button"
+                          aria-expanded={sourceOpen}
+                          onClick={() => {
+                            setOpenSource(sourceOpen ? null : course.id);
+                            setOpenWhy(null);
+                          }}
+                          className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs font-medium text-foreground/80 transition-colors hover:border-mint/50 hover:text-mint"
+                        >
+                          {sourceOpen ? "Hide source" : "Official Source"}
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
 
             <p className="mt-10 text-center text-xs leading-relaxed text-foreground/40">
               CourseCompass AU provides decision support based on published university information.
