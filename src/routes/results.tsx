@@ -550,6 +550,10 @@ function Results() {
     profile.career,
   );
 
+  // Preferred City filter: only show courses whose verified locations include
+  // the selected city. Unsupported cities yield an empty list (handled below).
+  const cityCourses = COURSES.filter((course) => course.cities.includes(profile.city));
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background font-sans text-foreground">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
@@ -816,9 +820,26 @@ function Results() {
                   Adjust my profile
                 </Link>
               </div>
+            ) : cityCourses.length === 0 ? (
+              <div className="glass mt-8 rounded-3xl p-8 text-center sm:p-10">
+                <h2 className="font-display text-xl font-bold sm:text-2xl">
+                  No verified courses are currently available in this city.
+                </h2>
+                <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-foreground/60">
+                  CourseCompass AU&rsquo;s verified Information Technology courses are currently in
+                  Melbourne and Geelong{profile.city ? ` — not ${profile.city}` : ""}. Try selecting
+                  one of those cities to see verified matches.
+                </p>
+                <Link
+                  to="/"
+                  className="mt-7 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-brand to-cyan px-6 py-3 font-display text-sm font-bold text-ink transition hover:brightness-110"
+                >
+                  Adjust my profile
+                </Link>
+              </div>
             ) : (
               <div className="mt-8 grid gap-5 lg:grid-cols-3">
-                {COURSES.map((course) => {
+                {cityCourses.map((course) => {
                   const academic = course.academic(profile.academic);
                   const ielts = ieltsResult(course, profile.ielts);
                   const maths = mathsResult(course, profile.maths);

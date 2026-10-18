@@ -437,3 +437,25 @@ automated monitoring:
 - Existing Information Technology matching, eligibility rules, course facts,
   freshness monitoring and manual verification were NOT changed.
 - `npm run build` and `npx tsc --noEmit` passed.
+
+### Preferred City filtering
+- Regression testing found that the selected city was displayed in the profile
+  but was not being applied to course filtering.
+- Adelaide was incorrectly still showing Melbourne-based courses.
+- The city filtering logic was corrected (a minimal change in
+  `src/routes/results.tsx`).
+- Melbourne now returns Monash, RMIT and Deakin.
+- Geelong returns Deakin only.
+- Adelaide and other unsupported cities return no local matching courses and
+  show a clear empty state, with the student's profile still visible.
+- No course facts, eligibility thresholds, IELTS/maths logic, data freshness
+  system or manual-verification workflow were changed.
+
+### Budget validation
+- We tested a profile with an annual budget under A$30,000.
+- All three current courses have tuition above this budget.
+- The system correctly kept the courses visible but labelled them "Above stated
+  budget".
+- We decided to keep budget as an affordability indicator rather than an
+  admission eligibility criterion.
+- No code change was required for the budget logic.
