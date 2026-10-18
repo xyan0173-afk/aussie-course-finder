@@ -422,3 +422,18 @@ automated monitoring:
 - This fix is evidence of human validation and refinement: we caught and
   corrected a real preference/recommendation mismatch rather than blindly
   accepting the existing AI-built behaviour.
+
+### Final MVP scope refinement (Preferred Field)
+- Further regression testing showed that offering unsupported study fields could
+  imply that CourseCompass AU supports areas for which we have no verified course
+  dataset.
+- The team therefore made a human design decision to make the MVP scope explicit
+  rather than giving users unsupported options.
+- Preferred Field is now limited to Information Technology.
+- The interface clearly states: "Current MVP coverage: Information Technology
+  only."
+- This avoids misleading users and keeps the interface aligned with the verified
+  dataset.
+- Existing Information Technology matching, eligibility rules, course facts,
+  freshness monitoring and manual verification were NOT changed.
+- `npm run build` and `npx tsc --noEmit` passed.

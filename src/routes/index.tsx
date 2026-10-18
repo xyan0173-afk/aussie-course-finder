@@ -24,14 +24,9 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const FIELDS = [
-  "Engineering",
-  "Information Technology",
-  "Computer Science",
-  "Business & Finance",
-  "Health & Medicine",
-  "Design & Arts",
-];
+// MVP scope: the verified dataset currently contains only selected
+// undergraduate Information Technology courses, so this is the only field.
+const FIELDS = ["Information Technology"];
 
 const CITIES = ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide", "Canberra"];
 
@@ -230,6 +225,9 @@ function Index() {
                       </option>
                     ))}
                   </select>
+                  <p className="mt-2 text-[11px] text-foreground/40">
+                    Current MVP coverage: Information Technology only.
+                  </p>
                 </div>
 
                 <div>
