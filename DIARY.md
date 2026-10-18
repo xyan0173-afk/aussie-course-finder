@@ -388,104 +388,58 @@ automated monitoring:
 - The final result still needs to be verified by a successful live Vercel
   deployment.
 
-## 18 October 2026 (final MVP validation)
+## 14 October 2026 – Successful Production Deployment and Live Verification
 
-### Preferred-field filtering bug
-- During final regression testing we tested a non-IT preferred field (e.g.
-  Business).
-- We found that the selected field was displayed correctly in the student
-  profile, but the recommendation logic still returned the three verified IT
-  courses.
-- This created a mismatch between the user's stated preference and the
-  recommendations shown.
+- CourseCompass AU was successfully deployed to Vercel Production.
+- The public production website became accessible through the Vercel URL.
+- The main course-matching workflow was tested successfully in the production
+  environment.
+- "Check official sources now" successfully ran server-side in the Vercel
+  deployment.
+- RMIT's two official sources were automatically accessible and could complete
+  the approved-baseline workflow.
+- Monash and Deakin official sources returned HTTP 403 to automated checks
+  because of access/bot restrictions.
+- The system correctly showed "Manual Verification Required" instead of falsely
+  claiming success.
+- After human review, Monash and Deakin displayed "Manually Verified / Automated
+  Monitoring Limited".
+- RMIT displayed "Verified / Sources unchanged" after both sources were
+  approved.
+- Refresh persistence was confirmed using the beta/demo localStorage mechanism.
+- No course facts or eligibility thresholds were automatically changed by the
+  freshness system.
 
-### Human judgement
-- We decided NOT to fabricate Business or other course data, because the
-  verified MVP dataset currently contains only selected undergraduate
-  Information Technology courses.
-- Instead, the preferred-field filtering logic was corrected with a minimal
-  change in `src/routes/results.tsx`.
-
-### Result
-- Non-IT fields now return a transparent empty state that explains the current
-  MVP coverage ("No verified courses are currently available for this field" /
-  "CourseCompass AU currently covers selected undergraduate Information
-  Technology courses only"), with the student's profile still visible.
-- Selecting Information Technology still returns the existing Monash (C2000),
-  RMIT (BP162) and Deakin (S326) courses, unchanged.
-- Existing course facts, eligibility rules, IELTS/maths/budget logic, the data
-  freshness monitoring system and the manual-verification workflow were NOT
-  changed.
-- `npm run build` and `npx tsc --noEmit` both passed.
-
-### Reflection
-- This fix is evidence of human validation and refinement: we caught and
-  corrected a real preference/recommendation mismatch rather than blindly
-  accepting the existing AI-built behaviour.
-
-### Final MVP scope refinement (Preferred Field)
-- Further regression testing showed that offering unsupported study fields could
-  imply that CourseCompass AU supports areas for which we have no verified course
-  dataset.
-- The team therefore made a human design decision to make the MVP scope explicit
-  rather than giving users unsupported options.
-- Preferred Field is now limited to Information Technology.
-- The interface clearly states: "Current MVP coverage: Information Technology
-  only."
-- This avoids misleading users and keeps the interface aligned with the verified
-  dataset.
-- Existing Information Technology matching, eligibility rules, course facts,
-  freshness monitoring and manual verification were NOT changed.
-- `npm run build` and `npx tsc --noEmit` passed.
-
-### Preferred City filtering
-- Regression testing found that the selected city was displayed in the profile
-  but was not being applied to course filtering.
-- Adelaide was incorrectly still showing Melbourne-based courses.
-- The city filtering logic was corrected (a minimal change in
-  `src/routes/results.tsx`).
-- Melbourne now returns Monash, RMIT and Deakin.
-- Geelong returns Deakin only.
-- Adelaide and other unsupported cities return no local matching courses and
-  show a clear empty state, with the student's profile still visible.
-- No course facts, eligibility thresholds, IELTS/maths logic, data freshness
-  system or manual-verification workflow were changed.
-
-### Budget validation
-- We tested a profile with an annual budget under A$30,000.
-- All three current courses have tuition above this budget.
-- The system correctly kept the courses visible but labelled them "Above stated
-  budget".
-- We decided to keep budget as an affordability indicator rather than an
-  admission eligibility criterion.
-- No code change was required for the budget logic.
-
-## 18 October 2026 (final regression testing)
+## 18 October 2026 – Final MVP Validation and Regression Testing
 
 This was internal regression testing conducted by the development team, not
 external user testing.
 
-### 1. Preferred Field scope validation
+### Preferred Field scope validation
 - Testing found that unsupported study fields could previously be selected even
-  though the verified dataset only contained Information Technology courses.
+  though the verified dataset only contained Information Technology courses, so
+  offering those fields could imply coverage we do not have.
 - The MVP scope was refined so Preferred Field is now limited to Information
-  Technology.
+  Technology (a minimal change in `src/routes/index.tsx`), and the preferred
+  -field filtering logic in `src/routes/results.tsx` was corrected so a non-IT
+  field returns a transparent empty state rather than the IT courses.
 - The interface clearly states: "Current MVP coverage: Information Technology
   only."
 - This was a deliberate human design decision to avoid implying unsupported
-  coverage.
+  coverage. We did NOT fabricate Business or other course data.
 
-### 2. Preferred City validation
+### Preferred City validation
 - Testing found that the selected city was previously displayed in the student
   profile but was not actually applied to course filtering.
 - Adelaide incorrectly returned Melbourne-based courses.
-- City filtering was corrected.
+- City filtering was corrected (a minimal change in `src/routes/results.tsx`).
 - Melbourne returns Monash, RMIT and Deakin.
 - Geelong returns Deakin only.
-- Adelaide and Sydney return no local verified courses.
+- Adelaide and Sydney return no local verified courses and show a clear empty
+  state, with the student's profile still visible.
 - No fake courses were added for unsupported locations.
 
-### 3. Budget validation
+### Budget validation
 - A profile with an annual budget under A$30,000 was tested.
 - All three current courses have tuition above this budget.
 - The system correctly kept the courses visible but labelled them "Above stated
@@ -494,7 +448,7 @@ external user testing.
   criterion.
 - No code change was required for this logic.
 
-### 4. Lower-entry-profile regression test
+### Lower-entry-profile regression test
 Test profile:
 - Academic score: 60
 - IELTS: 6.0
@@ -510,7 +464,7 @@ Results:
 
 This confirmed that different published requirements produce different outcomes.
 
-### 5. High-condition-profile regression test
+### High-condition-profile regression test
 Test profile:
 - Academic score: 80
 - IELTS: 6.5
@@ -530,7 +484,7 @@ This confirmed that the system does not convert uncertain information into a
 confident eligibility decision simply because the applicant has a stronger
 profile.
 
-### 6. Validation conclusion
+### Validation conclusion
 - Final regression testing covered field scope, city filtering, unsupported
   locations, affordability, lower-condition and higher-condition profiles.
 - The main issues discovered during testing were preferred-field scope and city
