@@ -1,52 +1,5 @@
 # CourseCompass AU – Build Diary
 
-## 29 September 2026
-
-### Tool
-Lovable
-
-### Goal
-Build the first beta version of CourseCompass AU for Chinese high-school students applying to Australian undergraduate courses.
-
-### What AI produced
-Lovable generated the homepage, student profile form, course results page, eligibility checks, source links, and explanation sections.
-
-### Human judgement
-The initial version contained unsupported claims such as “120+ Courses” and “100% Source-linked”. These claims were removed because they were not supported by verified data.
-
-The project was then connected to GitHub and imported into Kiro for further development and testing.
-
-### Data
-Verified beta course data was added for:
-- Monash University – Bachelor of Information Technology (C2000)
-- RMIT University – Bachelor of Information Technology (BP162)
-
-Deakin University – Bachelor of Information Technology (S326) was included with “Needs Verification” for fields that had not yet been verified.
-
-### Testing
-The following tests were completed:
-
-1. High academic score, IELTS 8.0, Mathematics Yes
-   - Monash showed “Appears Eligible Based on Published Requirements”.
-
-2. IELTS 5.0
-   - Monash showed “Requirement Not Met”.
-   - IELTS requirement showed “Not Met”.
-
-3. Mathematics No
-   - Monash showed “Requirement Not Met”.
-   - Mathematics requirement showed “Not Met”.
-
-The “Why this course?” explanation and “Official Source” sections were also checked and worked correctly.
-
-### Current limitations
-- Only a small beta dataset is currently included.
-- RMIT academic equivalency requires regional verification.
-- Deakin entry requirements, IELTS, mathematics prerequisite, and tuition are not yet fully verified.
-
-### Next step
-Collect beta feedback and decide which issue should be fixed first.
-
 ## Week 6 – 31 August to 4 September 2026
 
 ### Exploring AI build lanes and development tools
@@ -145,6 +98,53 @@ The team concluded that the MVP should proceed only with safeguards, limited sco
 At this stage, the later data-freshness monitoring system had NOT yet been implemented. However, the Week 8 risk review established the principles that later influenced the freshness monitoring, manual verification and human-in-the-loop safeguards added during later development.
 
 This ensured that CourseCompass AU was developed as a decision-support tool rather than an automated admissions decision-maker.
+
+## 29 September 2026
+
+### Tool
+Lovable
+
+### Goal
+Build the first beta version of CourseCompass AU for Chinese high-school students applying to Australian undergraduate courses.
+
+### What AI produced
+Lovable generated the homepage, student profile form, course results page, eligibility checks, source links, and explanation sections.
+
+### Human judgement
+The initial version contained unsupported claims such as “120+ Courses” and “100% Source-linked”. These claims were removed because they were not supported by verified data.
+
+The project was then connected to GitHub and imported into Kiro for further development and testing.
+
+### Data
+Verified beta course data was added for:
+- Monash University – Bachelor of Information Technology (C2000)
+- RMIT University – Bachelor of Information Technology (BP162)
+
+Deakin University – Bachelor of Information Technology (S326) was included with “Needs Verification” for fields that had not yet been verified.
+
+### Testing
+The following tests were completed:
+
+1. High academic score, IELTS 8.0, Mathematics Yes
+   - Monash showed “Appears Eligible Based on Published Requirements”.
+
+2. IELTS 5.0
+   - Monash showed “Requirement Not Met”.
+   - IELTS requirement showed “Not Met”.
+
+3. Mathematics No
+   - Monash showed “Requirement Not Met”.
+   - Mathematics requirement showed “Not Met”.
+
+The “Why this course?” explanation and “Official Source” sections were also checked and worked correctly.
+
+### Current limitations
+- Only a small beta dataset is currently included.
+- RMIT academic equivalency requires regional verification.
+- Deakin entry requirements, IELTS, mathematics prerequisite, and tuition are not yet fully verified.
+
+### Next step
+Collect beta feedback and decide which issue should be fixed first.
 
 ## Week 9 Update
 
@@ -484,8 +484,8 @@ automated monitoring:
   access in `vite.config.ts`.
 - Course data, eligibility logic, freshness logic and manual-verification
   behaviour were NOT changed.
-- The final result still needs to be verified by a successful live Vercel
-  deployment.
+- At this stage, the final result still needed to be verified by a successful
+  live Vercel deployment.
 
 ## 14 October 2026 – Successful Production Deployment and Live Verification
 
