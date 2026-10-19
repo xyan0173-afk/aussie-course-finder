@@ -47,6 +47,105 @@ The “Why this course?” explanation and “Official Source” sections were a
 ### Next step
 Collect beta feedback and decide which issue should be fixed first.
 
+## Week 6 – 31 August to 4 September 2026
+
+### Exploring AI build lanes and development tools
+
+At this stage, the group had not yet combined and compared all four members' A1 proposals, so the final group project had not been selected.
+
+To learn the Week 6 build-lane framework, we used one member's existing A1 proposal as a working example: an AI-based demand forecasting system for independent bakeries.
+
+That proposal focused on a structured prediction problem using historical POS sales, weather, holidays and other tabular inputs to forecast bakery demand. This helped us understand why different business problems suit different AI approaches and why a structured forecasting problem is better matched to predictive or classical machine-learning methods than to a foundation model.
+
+Week 6 was therefore primarily an exploration and learning stage rather than final MVP development.
+
+The team also began learning the AI-assisted development tools introduced in the unit and became familiar with the idea of using tools such as Lovable to rapidly build and iterate a working MVP.
+
+### Human judgement
+
+We did not treat the bakery forecasting proposal as the final group project simply because it was available first.
+
+The purpose of using it in Week 6 was to understand the AI build lanes and the available AI-building workflow before the team compared all four A1 proposals.
+
+## Week 7 – 7 to 11 September 2026
+
+### Comparing the four A1 proposals
+
+The four group members compared their individual A1 project ideas before selecting the final group direction.
+
+The comparison considered:
+
+- the business problem and user value;
+- fit between the problem and AI;
+- feasibility of building a working MVP within the semester;
+- availability and verifiability of data;
+- the ability to demonstrate the system clearly in testing and presentation;
+- the risk of over-scoping the project.
+
+### Final project selection
+
+After comparing and discussing the four proposals, the team selected CourseCompass AU as the group project.
+
+CourseCompass AU was defined as a decision-support MVP for Chinese high-school students researching Australian undergraduate courses.
+
+The team deliberately narrowed the initial scope rather than attempting to cover a large number of universities and study areas.
+
+The early MVP direction focused on:
+
+- a student profile;
+- course matching;
+- eligibility checks based on published requirements;
+- explainable results;
+- official university sources;
+- a small, manageable verified dataset.
+
+This decision established the direction that was later developed into the working CourseCompass AU MVP.
+
+## Week 8 – 14 to 18 September 2026
+
+### Responsible AI risk review
+
+During Week 8, the team used the Responsible AI and MVP risk-review framework from class to examine CourseCompass AU before expanding development.
+
+The review focused on the business case, intended users, expected benefit, important AI-related risks, possible safeguards and the residual risks that would remain even after controls were introduced.
+
+### Main risks identified
+
+The main risks identified for CourseCompass AU were:
+
+1. Outdated or incorrect university information
+
+- University entry requirements, fees and course information can change.
+- Incorrect or outdated data could mislead a student.
+
+2. Overconfident or misleading eligibility conclusions
+
+- A user could incorrectly interpret a course recommendation or eligibility result as a guarantee of admission.
+
+3. Over-reliance on AI or automated outputs
+
+- If AI-generated content or automated checking is inaccurate, users may still trust it unless uncertainty and human oversight are made visible.
+
+### Planned safeguards
+
+Based on the Week 8 risk review, the team established several design principles for the MVP:
+
+- use official university sources wherever possible;
+- avoid predicting admission probability;
+- use conservative statuses such as "Needs Verification" when information cannot be confidently confirmed;
+- explain why requirements appear to be met or not met;
+- retain human review for uncertain or higher-risk information;
+- test and monitor the system before wider deployment;
+- keep the MVP dataset deliberately small and verified rather than claiming unsupported coverage.
+
+### Human judgement
+
+The team concluded that the MVP should proceed only with safeguards, limited scope and further testing.
+
+At this stage, the later data-freshness monitoring system had NOT yet been implemented. However, the Week 8 risk review established the principles that later influenced the freshness monitoring, manual verification and human-in-the-loop safeguards added during later development.
+
+This ensured that CourseCompass AU was developed as a decision-support tool rather than an automated admissions decision-maker.
+
 ## Week 9 Update
 
 ## 4 October 2026
