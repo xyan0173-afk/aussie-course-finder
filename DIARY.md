@@ -386,8 +386,10 @@ RMIT BP162 and the freshness architecture untouched.
 ### Eligibility logic
 - Deakin academic: Gaokao ≥ 60% → Appears Met; < 60% → Not Met; invalid/unusable
   score → Needs Verification.
-- Deakin IELTS: overall ≥ 6.0 and each band ≥ 6.0 → Appears Met; otherwise Not
-  Met.
+- The verified Deakin English requirement was IELTS overall ≥ 6.0 with each band
+  ≥ 6.0. At this stage, however, the beta form still collected only an overall IELTS
+  score, so component-level Listening, Reading, Writing and Speaking checks were
+  not yet implemented. This remained a known limitation for later validation.
 - Mathematics does not cause a Deakin applicant to fail (no listed prerequisite).
 - The "meeting minimum requirements does not guarantee admission" disclaimer is
   retained.
@@ -400,9 +402,11 @@ RMIT BP162 and the freshness architecture untouched.
 
 ### Verification
 - `npm run build` succeeds and lint passes.
-- Deakin academic, IELTS and maths logic were checked across representative
-  inputs (e.g. 60% met, 59% not met, invalid score needs verification, IELTS 6.0
-  met vs 5.5 not met, maths "no" does not fail).
+- Deakin academic and mathematics logic were checked across representative inputs
+  (e.g. 60% met, 59% not met, invalid score needs verification, and maths "no"
+  does not fail).
+- The overall IELTS check was tested at 6.0 versus 5.5. Component-level band
+  validation was not yet implemented in the beta form at this stage.
 
 ### Files changed
 - `src/routes/results.tsx`, `src/lib/freshness-data.ts`.
@@ -594,7 +598,7 @@ profile.
 
 ## 2 November 2026 – Final Beta Lab Feedback Review
 
-On 2 November 2026, we reviewed the consolidated Beta Lab feedback prepared from peer reviews originally received on 7 October 2026.
+On 2 November 2026, we reviewed the consolidated Beta Lab feedback prepared from peer reviews originally received on 7 October 2026. The four reviews were from G14 reviewers Jinyang Li, Yiyao Ma and Darrel Darmawan, and G13 reviewer Anike Mparuri.
 
 The feedback identified several important issues: Preferred Study Field and Preferred City were not affecting recommendations correctly; the dataset was limited; the IELTS check used only an overall score; inputs were cleared when returning to the profile page; and reviewers suggested broader coverage and side-by-side comparison.
 
@@ -608,4 +612,4 @@ Regression checks confirmed that: (1) overall 6.5 with Writing 5.5 fails the Eng
 
 The final changes were committed as `Address final A3 beta validation feedback` and pushed to the `main` branch. Vercel automatically created a new production deployment and reported `Ready`. The live application was then re-verified: the profile showed IELTS Overall plus Listening, Reading, Writing and Speaking; Career Interest was removed; Geelong was available as a city; and a live profile with Overall 6.5, Listening 6.0, Reading 6.0, Writing 5.5 and Speaking 6.0 correctly returned "Requirement Not Met" for the English requirement.
 
-AI-assisted development was used to implement and review these final changes, while human judgement was used to assess the feedback, preserve verified course data and decide which changes were appropriate for the MVP scope.
+ChatGPT was used as the AI-assisted development tool to support implementation and review of these final changes after Kiro access was unavailable. The updated files were then manually integrated into the existing project in VS Code, and the team ran the regression tests, TypeScript check and production build before committing and pushing the changes to GitHub and verifying the Vercel deployment. Human judgement was used to assess the feedback, preserve verified course data and decide which changes were appropriate for the MVP scope.
