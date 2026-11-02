@@ -591,3 +591,19 @@ profile.
 - Both were corrected and re-tested.
 - Existing verified course facts, academic thresholds, IELTS logic, mathematics
   logic, freshness monitoring and manual-verification workflows were not changed.
+
+## 2 November 2026 – Final Beta Lab Feedback Review
+
+On 2 November 2026, we reviewed the consolidated Beta Lab feedback prepared from peer reviews originally received on 7 October 2026.
+
+The feedback identified several important issues: Preferred Study Field and Preferred City were not affecting recommendations correctly; the dataset was limited; the IELTS check used only an overall score; inputs were cleared when returning to the profile page; and reviewers suggested broader coverage and side-by-side comparison.
+
+We assessed the Field and City issues as high priority because they directly affected recommendation relevance. These had already been corrected during later regression testing. We kept the limited dataset as a deliberate scope decision because every additional course would require careful verification, while profile persistence and side-by-side comparison remain lower-priority usability improvements.
+
+The IELTS component-score issue was assessed as an important correctness problem. We implemented separate IELTS Overall, Listening, Reading, Writing and Speaking inputs and changed the English eligibility logic so both the overall score and all four components are checked against each course's published requirement. Missing component scores now produce "Needs Verification", while a component below the minimum produces "Requirement Not Met" even if the overall score passes.
+
+Career Interest was removed from the active profile because it was not used by verified matching or eligibility logic. During the same review, we found that Geelong was supported by the existing Deakin location logic but was missing from the city dropdown, so Geelong was added as a selectable city without adding any new course data.
+
+Regression checks confirmed that: (1) overall 6.5 with Writing 5.5 fails the English requirement for Monash, RMIT and Deakin; (2) overall 6.5 with all components at 6.0 passes all three English checks; (3) overall 6.0 with all components at 6.0 fails Monash and RMIT but passes Deakin; and (4) missing component scores produce "Needs Verification". TypeScript checking and targeted linting passed. A final production build and live Vercel verification will be re-run in the original Mac development environment before submission.
+
+AI-assisted development was used to implement and review these final changes, while human judgement was used to assess the feedback, preserve verified course data and decide which changes were appropriate for the MVP scope.

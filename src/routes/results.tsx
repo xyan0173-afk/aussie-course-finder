@@ -11,6 +11,7 @@ import {
 } from "../lib/freshness";
 import { MONITORED, sourceKey, type CourseId } from "../lib/freshness-data";
 import { runFreshnessCheck } from "../lib/freshness-check";
+import { ieltsResult, type Check, type Status } from "../lib/eligibility";
 import {
   loadCheckResults,
   saveCheckResults,
@@ -26,11 +27,14 @@ import {
 type Search = {
   academic: string;
   ielts: string;
+  ieltsL: string;
+  ieltsR: string;
+  ieltsW: string;
+  ieltsS: string;
   maths: string;
   field: string;
   city: string;
   budget: string;
-  career: string;
 };
 
 function readSearch(search: Record<string, unknown>): Search {
@@ -38,11 +42,14 @@ function readSearch(search: Record<string, unknown>): Search {
   return {
     academic: str("academic"),
     ielts: str("ielts"),
+    ieltsL: str("ieltsL"),
+    ieltsR: str("ieltsR"),
+    ieltsW: str("ieltsW"),
+    ieltsS: str("ieltsS"),
     maths: str("maths"),
     field: str("field"),
     city: str("city"),
     budget: str("budget"),
-    career: str("career"),
   };
 }
 
@@ -68,9 +75,6 @@ export const Route = createFileRoute("/results")({
 });
 
 // ============= Verified beta dataset =============
-
-type Status = "eligible" | "verify" | "not-met";
-type Check = { status: Status; note: string };
 
 const VERIFY_TEXT = "This requirement needs verification using the official university source.";
 
@@ -244,27 +248,6 @@ const STATUS_META: Record<
     chip: "border-danger/40 bg-danger/10 text-danger",
   },
 };
-
-function ieltsResult(course: Course, raw: string): Check {
-  if (!course.ielts)
-    return { status: "verify", note: `IELTS requirement not verified. ${VERIFY_TEXT}` };
-  const { overall, band } = course.ielts;
-  const n = firstNumber(raw);
-  if (n === null)
-    return {
-      status: "verify",
-      note: `No IELTS score provided. Published: ${overall} overall, min ${band} each band.`,
-    };
-  if (n >= overall)
-    return {
-      status: "eligible",
-      note: `${n} overall meets the published ${overall}. Each band must also be at least ${band}.`,
-    };
-  return {
-    status: "not-met",
-    note: `${n} overall is below the published ${overall} (min ${band} each band).`,
-  };
-}
 
 function mathsResult(course: Course, maths: string): Check {
   if (course.requiresMaths === null)
@@ -535,7 +518,11 @@ function Results() {
 
   const summary = [
     { label: "Academic score", value: profile.academic || "—" },
-    { label: "IELTS", value: profile.ielts || "—" },
+    { label: "IELTS overall", value: profile.ielts || "—" },
+    { label: "Listening", value: profile.ieltsL || "—" },
+    { label: "Reading", value: profile.ieltsR || "—" },
+    { label: "Writing", value: profile.ieltsW || "—" },
+    { label: "Speaking", value: profile.ieltsS || "—" },
     {
       label: "Mathematics",
       value: profile.maths === "yes" ? "Yes" : profile.maths === "no" ? "No" : "—",
@@ -543,12 +530,7 @@ function Results() {
     { label: "Field", value: profile.field || "—" },
     { label: "City", value: profile.city || "—" },
     { label: "Budget", value: profile.budget || "—" },
-    ...(profile.career ? [{ label: "Career interest", value: profile.career }] : []),
   ];
-
-  const asksAboutChances = /guarantee|definitely|chance|probability|admit|offer/i.test(
-    profile.career,
-  );
 
   // Preferred City filter: only show courses whose verified locations include
   // the selected city. Unsupported cities yield an empty list (handled below).
@@ -626,14 +608,6 @@ function Results() {
                 </span>
               ))}
             </div>
-
-            {asksAboutChances && (
-              <div className="mt-8 rounded-2xl border border-cyan/30 bg-cyan/10 px-4 py-3 text-xs leading-relaxed text-foreground/80 sm:text-sm">
-                CourseCompass AU cannot guarantee admission. The result only compares your profile
-                with currently published requirements. Final admission decisions are made by the
-                university.
-              </div>
-            )}
 
             {/* ===================== Data Freshness ===================== */}
             <section className="glass mt-8 rounded-3xl p-6" aria-labelledby="freshness-heading">
@@ -841,7 +815,13 @@ function Results() {
               <div className="mt-8 grid gap-5 lg:grid-cols-3">
                 {cityCourses.map((course) => {
                   const academic = course.academic(profile.academic);
-                  const ielts = ieltsResult(course, profile.ielts);
+                  const ielts = ieltsResult(course.ielts, {
+                    overall: profile.ielts,
+                    listening: profile.ieltsL,
+                    reading: profile.ieltsR,
+                    writing: profile.ieltsW,
+                    speaking: profile.ieltsS,
+                  });
                   const maths = mathsResult(course, profile.maths);
                   const budget = budgetResult(course, profile.budget);
                   const overall = overallStatus([academic, ielts, maths]);

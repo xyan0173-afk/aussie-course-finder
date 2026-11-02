@@ -28,30 +28,27 @@ export const Route = createFileRoute("/")({
 // undergraduate Information Technology courses, so this is the only field.
 const FIELDS = ["Information Technology"];
 
-const CITIES = ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide", "Canberra"];
+const CITIES = ["Sydney", "Melbourne", "Geelong", "Brisbane", "Perth", "Adelaide", "Canberra"];
 
-const BUDGETS = [
-  "Under $30,000",
-  "$30,000 – $45,000",
-  "$45,000 – $60,000",
-  "$60,000+",
-];
+const BUDGETS = ["Under $30,000", "$30,000 – $45,000", "$45,000 – $60,000", "$60,000+"];
 
 const inputClass =
   "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-foreground/30 outline-none transition-colors focus:border-cyan/60 focus:bg-white/10";
 
-const labelClass =
-  "mb-2 block text-xs font-medium uppercase tracking-wider text-foreground/50";
+const labelClass = "mb-2 block text-xs font-medium uppercase tracking-wider text-foreground/50";
 
 function Index() {
   const navigate = useNavigate();
   const [academicScore, setAcademicScore] = useState("");
   const [ielts, setIelts] = useState("");
+  const [ieltsListening, setIeltsListening] = useState("");
+  const [ieltsReading, setIeltsReading] = useState("");
+  const [ieltsWriting, setIeltsWriting] = useState("");
+  const [ieltsSpeaking, setIeltsSpeaking] = useState("");
   const [mathsCompleted, setMathsCompleted] = useState<boolean | null>(null);
   const [studyField, setStudyField] = useState(FIELDS[0] ?? "");
   const [city, setCity] = useState(CITIES[0] ?? "");
   const [budget, setBudget] = useState(BUDGETS[0] ?? "");
-  const [careerInterest, setCareerInterest] = useState("");
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -60,11 +57,14 @@ function Index() {
       search: {
         academic: academicScore,
         ielts,
+        ieltsL: ieltsListening,
+        ieltsR: ieltsReading,
+        ieltsW: ieltsWriting,
+        ieltsS: ieltsSpeaking,
         maths: mathsCompleted === null ? "" : mathsCompleted ? "yes" : "no",
         field: studyField,
         city,
         budget,
-        career: careerInterest,
       },
     });
   }
@@ -114,22 +114,31 @@ function Index() {
               </span>
             </h1>
             <p className="mt-6 max-w-md text-base leading-relaxed text-foreground/60 sm:text-lg">
-              We check each university&rsquo;s published entry requirements and return
-              source-linked recommendations matched to your scores, language results
-              and goals.
+              We check each university&rsquo;s published entry requirements and return source-linked
+              recommendations matched to your scores, language results and goals.
             </p>
             <div className="mt-8 grid grid-cols-3 gap-3">
               <div className="glass rounded-2xl p-4">
-                <p className="font-display text-sm font-bold text-cyan sm:text-base">Verified course information</p>
-                <p className="mt-1 text-xs text-foreground/50">Checked against published requirements</p>
+                <p className="font-display text-sm font-bold text-cyan sm:text-base">
+                  Verified course information
+                </p>
+                <p className="mt-1 text-xs text-foreground/50">
+                  Checked against published requirements
+                </p>
               </div>
               <div className="glass rounded-2xl p-4">
-                <p className="font-display text-sm font-bold text-foreground sm:text-base">Australian universities</p>
+                <p className="font-display text-sm font-bold text-foreground sm:text-base">
+                  Australian universities
+                </p>
                 <p className="mt-1 text-xs text-foreground/50">Undergraduate programs nationwide</p>
               </div>
               <div className="glass rounded-2xl p-4">
-                <p className="font-display text-sm font-bold text-mint sm:text-base">Official-source links</p>
-                <p className="mt-1 text-xs text-foreground/50">Every recommendation shows its source</p>
+                <p className="font-display text-sm font-bold text-mint sm:text-base">
+                  Official-source links
+                </p>
+                <p className="mt-1 text-xs text-foreground/50">
+                  Every recommendation shows its source
+                </p>
               </div>
             </div>
           </div>
@@ -160,18 +169,110 @@ function Index() {
                 </div>
                 <div>
                   <label htmlFor="ielts" className={labelClass}>
-                    IELTS score
+                    IELTS overall
                   </label>
                   <input
                     id="ielts"
-                    type="text"
+                    type="number"
                     inputMode="decimal"
-                    maxLength={10}
+                    min="0"
+                    max="9"
+                    step="0.5"
                     value={ielts}
                     onChange={(e) => setIelts(e.target.value)}
-                    placeholder="e.g. 6.5 overall"
+                    placeholder="e.g. 6.5"
                     className={inputClass}
                   />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <span className={labelClass}>IELTS component scores</span>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <div>
+                      <label
+                        htmlFor="ielts-listening"
+                        className="mb-1.5 block text-[11px] text-foreground/45"
+                      >
+                        Listening
+                      </label>
+                      <input
+                        id="ielts-listening"
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        max="9"
+                        step="0.5"
+                        value={ieltsListening}
+                        onChange={(e) => setIeltsListening(e.target.value)}
+                        placeholder="e.g. 6.0"
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="ielts-reading"
+                        className="mb-1.5 block text-[11px] text-foreground/45"
+                      >
+                        Reading
+                      </label>
+                      <input
+                        id="ielts-reading"
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        max="9"
+                        step="0.5"
+                        value={ieltsReading}
+                        onChange={(e) => setIeltsReading(e.target.value)}
+                        placeholder="e.g. 6.0"
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="ielts-writing"
+                        className="mb-1.5 block text-[11px] text-foreground/45"
+                      >
+                        Writing
+                      </label>
+                      <input
+                        id="ielts-writing"
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        max="9"
+                        step="0.5"
+                        value={ieltsWriting}
+                        onChange={(e) => setIeltsWriting(e.target.value)}
+                        placeholder="e.g. 6.0"
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="ielts-speaking"
+                        className="mb-1.5 block text-[11px] text-foreground/45"
+                      >
+                        Speaking
+                      </label>
+                      <input
+                        id="ielts-speaking"
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        max="9"
+                        step="0.5"
+                        value={ieltsSpeaking}
+                        onChange={(e) => setIeltsSpeaking(e.target.value)}
+                        placeholder="e.g. 6.0"
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+                  <p className="mt-2 text-[11px] text-foreground/40">
+                    English eligibility checks both the overall IELTS score and all four component
+                    scores.
+                  </p>
                 </div>
 
                 <div>
@@ -264,21 +365,6 @@ function Index() {
                     ))}
                   </select>
                 </div>
-
-                <div className="sm:col-span-2">
-                  <label htmlFor="career" className={labelClass}>
-                    Career interest
-                  </label>
-                  <input
-                    id="career"
-                    type="text"
-                    maxLength={120}
-                    value={careerInterest}
-                    onChange={(e) => setCareerInterest(e.target.value)}
-                    placeholder="e.g. Software engineer, data analyst, doctor"
-                    className={inputClass}
-                  />
-                </div>
               </div>
 
               <button
@@ -289,9 +375,9 @@ function Index() {
               </button>
 
               <p className="mt-4 text-center text-xs leading-relaxed text-foreground/40">
-                CourseCompass AU provides decision support based on published
-                university information. It does not guarantee admission. Final
-                admission decisions are made by universities.
+                CourseCompass AU provides decision support based on published university
+                information. It does not guarantee admission. Final admission decisions are made by
+                universities.
               </p>
             </form>
           </div>
