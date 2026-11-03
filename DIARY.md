@@ -1,6 +1,14 @@
 # CourseCompass AU – Build Diary
 
+> **Diary integrity note (added for final A3 submission):** This diary was kept across the semester. The final A3 instructions ask for AI tool/model and prompt evidence. Where the exact wording of an earlier prompt was not retained, the entry below is explicitly labelled **paraphrased prompt intent** rather than reconstructed as a verbatim quote. Where an AI platform did not expose, or the diary did not retain, the underlying model name, that is stated honestly instead of inventing one.
+
 ## Week 6 – 31 August to 4 September 2026
+
+### AI tool / model and prompt record
+No CourseCompass product build was carried out this week. The team was learning the unit's AI build-lane framework and AI-assisted development approach. No product prompt or underlying model was recorded for this exploratory week.
+
+### What was dropped / what we would do differently
+The bakery forecasting proposal was deliberately not carried forward as the group project. In hindsight, we would begin recording tool/model and prompt evidence from the first exploratory week, even before the final project is selected.
 
 ### Exploring AI build lanes and development tools
 
@@ -21,6 +29,12 @@ We did not treat the bakery forecasting proposal as the final group project simp
 The purpose of using it in Week 6 was to understand the AI build lanes and the available AI-building workflow before the team compared all four A1 proposals.
 
 ## Week 7 – 7 to 11 September 2026
+
+### AI tool / model and prompt record
+No AI-generated CourseCompass build was produced in this entry. The work was a human comparison of the four A1 proposals and a scope decision. No product prompt/model was recorded.
+
+### What was dropped / what we would do differently
+Three A1 proposals were not selected after the comparison. The team chose CourseCompass AU because it offered a clearer testable workflow and verifiable data. We would document the proposal comparison criteria in a reusable decision table earlier if repeating the process.
 
 ### Comparing the four A1 proposals
 
@@ -55,6 +69,12 @@ The early MVP direction focused on:
 This decision established the direction that was later developed into the working CourseCompass AU MVP.
 
 ## Week 8 – 14 to 18 September 2026
+
+### AI tool / model and prompt record
+This entry records the team's Responsible AI risk review rather than an AI coding interaction. No build prompt/model was used or retained for this risk-review activity.
+
+### What was dropped / what we would do differently
+We deliberately dropped the idea of broad, automated admission prediction and kept the MVP as decision support. If repeating the project, we would turn the risk review into explicit acceptance tests before the first beta so some later safeguards could be tested earlier.
 
 ### Responsible AI risk review
 
@@ -100,6 +120,18 @@ At this stage, the later data-freshness monitoring system had NOT yet been imple
 This ensured that CourseCompass AU was developed as a decision-support tool rather than an automated admissions decision-maker.
 
 ## 29 September 2026
+
+### AI tool / model
+Lovable. The specific underlying model was not exposed or retained in the build log.
+
+### Prompt that mattered
+**Paraphrased prompt intent:** Build a first beta of CourseCompass AU for Chinese high-school students applying to Australian undergraduate courses, with a student profile, course matching, published-requirement eligibility checks, explanations and official-source links.
+
+### What came back
+Lovable produced the first working interface and flow. The output was useful as a fast prototype, but it also introduced unsupported marketing claims that required human review.
+
+### What broke / was dropped / what we would do differently
+The claims “120+ Courses” and “100% Source-linked” were dropped because they were not supported by the verified dataset. If repeating this prompt, we would state the verified scope and prohibit unsupported numeric claims in the first instruction.
 
 ### Tool
 Lovable
@@ -150,6 +182,12 @@ Collect beta feedback and decide which issue should be fixed first.
 
 ## 4 October 2026
 
+### AI tool / model and prompt record
+No AI tool was used to generate the Beta Lab feedback itself; this entry records human testing/teaching feedback and the team's response. Prompt: not applicable.
+
+### What broke / was dropped / what we would do differently
+The assumption that manually collected course information was sufficient was dropped. If restarting, source freshness would be treated as a first-class requirement earlier rather than added after the beta discussion.
+
 ### Beta Testing Feedback
 The Week 9 beta presentation provided a clearer direction for improving CourseCompass AU.
 
@@ -175,6 +213,15 @@ The next development focus will be to investigate more reliable ways of keeping 
 The main focus for next week will be improving the data update and verification process so that CourseCompass AU can provide more current and trustworthy information without relying on uncontrolled web scraping.
 
 ## 13 October 2026
+
+### AI tool / model
+Kiro was used for AI-assisted implementation. The exact underlying Kiro model was not retained in the diary.
+
+### Prompt that mattered
+**Paraphrased prompt intent:** Add a source-freshness system that is separate from eligibility. Check official university sources safely, compare fetched content with a human-approved baseline, never auto-edit verified course facts, and return a visible manual-verification state when a source cannot be accessed.
+
+### What came back
+The AI-assisted implementation proposed the freshness modules, server-side source checker and UI states. Human review constrained the design so detected changes could only trigger review, never modify course data.
 
 ### Goal
 Act on the Week 9 beta feedback about data freshness by adding a monitoring
@@ -234,6 +281,15 @@ Optionally add a scheduled GitHub Action that calls the same check endpoint and
 opens a review task when a course flips to "Needs Review".
 
 ## 13 October 2026 (update 2)
+
+### AI tool / model
+Kiro (exact underlying model not retained).
+
+### Prompt that mattered
+**Paraphrased prompt intent:** Fix two browser-test failures: show “Not Yet Checked” before the first source check, and persist check results across refresh while keeping automated results and human-approved baselines separate. Do not auto-verify a fresh fetch.
+
+### What broke / was dropped / what we would do differently
+The original design incorrectly showed a failure before any check and lost state on refresh. Those behaviours were dropped. If repeating the design, we would model “not checked”, “checked”, and “human approved” as separate states from the start.
 
 ### Goal
 Fix two issues found during browser testing of the freshness workflow and
@@ -295,6 +351,15 @@ tighten the human-in-the-loop design.
 
 ## 13 October 2026 (update 3)
 
+### AI tool / model
+Kiro (exact underlying model not retained).
+
+### Prompt that mattered
+**Paraphrased prompt intent:** Monitor every official source used by each course, not only the first URL. Track results and human approval per source, and only show a course as verified when all required sources are confirmed.
+
+### What broke / was dropped / what we would do differently
+The one-source-per-course approach was dropped because it could falsely show “Verified” while another official source had changed. Multi-source monitoring became the safer design.
+
 ### Goal
 Fix a correctness gap found during review: the freshness system only monitored
 one source per course, so a course could show "Verified" even when another
@@ -349,6 +414,15 @@ each cite one. Monitoring only the first source was unsafe.
   `src/lib/freshness-storage.ts`, `src/routes/results.tsx`.
 
 ## 13 October 2026 (update 4)
+
+### AI tool / model
+Kiro supported implementation and checking; the exact underlying model was not retained. Official university sources remained the authority for factual values.
+
+### Prompt that mattered
+**Paraphrased prompt intent:** Complete Monash and Deakin verified data coverage using the already identified official sources, preserve RMIT behaviour, and implement only rules directly supported by the verified requirements.
+
+### What broke / was dropped / what we would do differently
+The incomplete Deakin placeholders were dropped after official verification. We would verify every planned course before exposing it in the first public beta if time allowed.
 
 ### Goal
 Complete verified data coverage for Monash C2000 and Deakin S326, while leaving
@@ -413,6 +487,15 @@ RMIT BP162 and the freshness architecture untouched.
 
 ## 13 October 2026 (update 5)
 
+### AI tool / model
+Kiro (exact underlying model not retained).
+
+### Prompt that mattered
+**Paraphrased prompt intent:** Add a manual human-review fallback for sources that return HTTP 403 or otherwise block automation. Keep manual verification separate from automated status and never create a fake automated baseline from manual review.
+
+### What broke / was dropped / what we would do differently
+An automated-only freshness workflow was dropped because Monash and Deakin blocked the checker. If rebuilding, the hybrid automated/manual path would be designed from the start rather than added after live source testing.
+
 ### Goal
 Complete the freshness workflow for official sources that cannot be checked
 automatically, by adding a hybrid human-review fallback.
@@ -470,6 +553,15 @@ automated monitoring:
 
 ## 14 October 2026
 
+### AI tool / model
+Kiro-assisted troubleshooting plus local npm/TypeScript diagnostics in VS Code. The exact Kiro model was not retained.
+
+### Prompt that mattered
+**Paraphrased prompt intent:** Resolve the Vercel dependency-security block with the minimum compatible package upgrades, fix resulting version/type conflicts, and preserve course data, eligibility and freshness behaviour.
+
+### What broke / was dropped / what we would do differently
+The first Vercel deployment failed because of dependency security/version conflicts. We avoided a broad dependency rewrite and used the minimum compatible upgrade. Future work should check deployment dependencies earlier, not only at final deployment.
+
 ### Vercel deployment: dependency security fix
 - The first attempt to deploy CourseCompass AU to Vercel was blocked because the
   installed TanStack React Start / Start Server Core versions were flagged for a
@@ -493,6 +585,12 @@ automated monitoring:
 
 ## 14 October 2026 – Successful Production Deployment and Live Verification
 
+### AI tool / model and prompt record
+No new AI-generated feature was required for this entry. This was manual production verification of the deployed build after the AI-assisted dependency fixes. Prompt: not applicable.
+
+### What broke / was dropped / what we would do differently
+Production testing confirmed that automated source access is not universal. We retained the manual fallback rather than trying to bypass website protections.
+
 - CourseCompass AU was successfully deployed to Vercel Production.
 - The public production website became accessible through the Vercel URL.
 - The main course-matching workflow was tested successfully in the production
@@ -514,6 +612,15 @@ automated monitoring:
   freshness system.
 
 ## 18 October 2026 – Final MVP Validation and Regression Testing
+
+### AI tool / model
+Kiro-assisted code refinement was used alongside manual browser regression testing; the exact underlying Kiro model was not retained.
+
+### Prompt that mattered
+**Paraphrased prompt intent:** Test contrasting profiles and confirm that Preferred Field, Preferred City and budget affect the results correctly. Apply minimal fixes only where behaviour is wrong, without inventing new course data or changing verified thresholds.
+
+### What broke / was dropped / what we would do differently
+Unsupported fields and incorrect city filtering were found. The broader field selector was dropped and city filtering was corrected. Future regression plans should include deliberately contrasting profiles earlier because they exposed logic that happy-path testing missed.
 
 This was internal regression testing conducted by the development team, not
 external user testing.
@@ -598,6 +705,18 @@ profile.
 
 ## 2 November 2026 – Final Beta Lab Feedback Review
 
+### AI tool / model
+ChatGPT was used as the AI-assisted development and review tool because Kiro organisation access was unavailable. The exact ChatGPT model name was not recorded in the original diary entry, so no model name is reconstructed here.
+
+### Prompt that mattered
+**Paraphrased prompt intent:** Implement the final Beta Lab correctness changes without altering verified course facts: add IELTS Overall plus Listening, Reading, Writing and Speaking; return “Requirement Not Met” when any required component is below the minimum, “Needs Verification” when a component is missing; remove Career Interest because it is unused; expose Geelong because existing Deakin logic already supports it; preserve the freshness workflow.
+
+### What came back
+The AI-assisted patch added the component-score inputs and shared eligibility logic, removed the unused field, exposed Geelong and added a regression script. The changes were manually integrated, built, type-checked, tested and then pushed to GitHub/Vercel.
+
+### What broke / was dropped / what we would do differently
+Kiro access itself became a tool constraint, so the workflow switched to ChatGPT rather than delaying the build. The unused Career Interest field was dropped. If repeating the project, the team would keep a tool-independent local workflow and record model/prompt metadata at the time of each AI interaction.
+
 On 2 November 2026, we reviewed the consolidated Beta Lab feedback prepared from peer reviews originally received on 7 October 2026. The four reviews were from G14 reviewers Jinyang Li, Yiyao Ma and Darrel Darmawan, and G13 reviewer Anike Mparuri.
 
 The feedback identified several important issues: Preferred Study Field and Preferred City were not affecting recommendations correctly; the dataset was limited; the IELTS check used only an overall score; inputs were cleared when returning to the profile page; and reviewers suggested broader coverage and side-by-side comparison.
@@ -613,3 +732,10 @@ Regression checks confirmed that: (1) overall 6.5 with Writing 5.5 fails the Eng
 The final changes were committed as `Address final A3 beta validation feedback` and pushed to the `main` branch. Vercel automatically created a new production deployment and reported `Ready`. The live application was then re-verified: the profile showed IELTS Overall plus Listening, Reading, Writing and Speaking; Career Interest was removed; Geelong was available as a city; and a live profile with Overall 6.5, Listening 6.0, Reading 6.0, Writing 5.5 and Speaking 6.0 correctly returned "Requirement Not Met" for the English requirement.
 
 ChatGPT was used as the AI-assisted development tool to support implementation and review of these final changes after Kiro access was unavailable. The updated files were then manually integrated into the existing project in VS Code, and the team ran the regression tests, TypeScript check and production build before committing and pushing the changes to GitHub and verifying the Vercel deployment. Human judgement was used to assess the feedback, preserve verified course data and decide which changes were appropriate for the MVP scope.
+
+
+## Final AI Tool-Switching Summary
+
+- **Lovable → Kiro:** Lovable was effective for rapidly producing the first working beta, but later work required more direct control over the GitHub codebase, testing and implementation details, so the project moved into Kiro for continued AI-assisted development.
+- **Kiro → ChatGPT (2 November):** Kiro organisation access was unavailable near final submission. Rather than delay the correctness fixes, ChatGPT was used to support the final patch. The patch was manually integrated and verified locally before GitHub/Vercel deployment.
+- **Model-name limitation:** the underlying model names used by Lovable and Kiro, and the exact ChatGPT model used in the historical interaction, were not retained in the contemporaneous build log. We therefore declare the tools accurately and do not invent model names retrospectively.
