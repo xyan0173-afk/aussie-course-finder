@@ -1,61 +1,101 @@
-# Course Compass AU
+# CourseCompass AU
 
-Create a responsive web app called CourseCompass AU.
+CourseCompass AU is a decision-support MVP for Chinese high-school students researching Australian undergraduate Information Technology courses.
 
-It helps Chinese high-school students explore Australian undergraduate courses based on their academic profile and preferences.
+## Core feature
 
-Create a clean, professional education-style landing page.
+CourseCompass AU compares a student profile with verified published course requirements and returns a source-backed shortlist with transparent eligibility, affordability, and data-freshness statuses.
 
-Add:
+## Live MVP
 
-Title: “Find Australian Courses That Fit Your Profile”
+https://aussie-course-finder-seven.vercel.app
 
-Short subtitle explaining that the tool checks published entry requirements and gives source-linked recommendations
+No login is required. Do not enter real personal data; the MVP is designed for simulated student profiles.
 
-Student profile form with:
+## How to try it
 
-academic score
+1. Open the live MVP.
+2. Enter a simulated student profile. For example:
+   - Academic score: `80`
+   - IELTS Overall: `6.0`
+   - IELTS Listening: `6.0`
+   - IELTS Reading: `6.0`
+   - IELTS Writing: `6.0`
+   - IELTS Speaking: `6.0`
+   - Mathematics completed: `Yes`
+   - Preferred Field: `Information Technology`
+   - Preferred City: `Melbourne`
+   - Annual Budget: `A$60,000+`
+3. Select **Find My Courses**.
+4. Review the Monash, RMIT, and Deakin results, including requirement-level statuses, explanations, affordability, and official-source links.
+5. Scroll to **Data Freshness** and select **Check official sources now**.
+   - RMIT sources can demonstrate the automated source-check/baseline workflow.
+   - Monash and Deakin may return HTTP 403 because their sites restrict automated access; the MVP shows **Manual Verification Required** rather than claiming success.
 
-IELTS score
+A useful correctness test is IELTS Overall `6.5` with Listening `6.0`, Reading `6.0`, Writing `5.5`, and Speaking `6.0`. The English requirement should return **Requirement Not Met** because the Writing component is below the published minimum.
 
-mathematics completed: Yes/No
+## Scope and decision logic
 
-preferred study field
+The final MVP intentionally covers a small verified Information Technology dataset only:
 
-preferred city
+- Monash University — Bachelor of Information Technology (C2000)
+- RMIT University — Bachelor of Information Technology (BP162)
+- Deakin University — Bachelor of Information Technology (S326)
 
-annual budget
+Eligibility is deterministic and based on verified published academic, IELTS, and mathematics requirements. CourseCompass AU does **not** predict admission probability and does not guarantee admission. Uncertain requirements remain **Needs Verification**.
 
-career interest
+Budget is an affordability indicator and does not change academic eligibility.
 
-Primary button: “Find My Courses”
+## AI use
 
-Add this disclaimer:
-“CourseCompass AU provides decision support based on published university information. It does not guarantee admission.”
+AI was central to the build process:
 
-Do not add login, payment, accounts or unnecessary features yet.
+- **Lovable** — first working beta and interface generation.
+- **Kiro** — AI-assisted code refinement, freshness workflow implementation, debugging, and deployment troubleshooting.
+- **ChatGPT** — final review and implementation support for the IELTS component-score changes after Kiro organisation access became unavailable.
 
-Focus only on the student profile input page.
+The exact underlying model names used in the historical Lovable/Kiro interactions were not retained, so they are not reconstructed. The final live eligibility workflow itself uses deterministic rules rather than asking a generative model to decide admission eligibility.
 
-This project was built with [Lovable](https://lovable.dev).
+GitHub was used for version control and Vercel for production deployment.
 
-**Live app**: https://aussie-course-finder.lovable.app
+## Data freshness and human review
 
-## Build with Lovable
+The freshness checker is separate from eligibility logic. It can compare accessible official sources with human-approved fingerprints, but it never automatically changes verified course facts. If a source cannot be accessed automatically, the MVP surfaces that limitation and supports manual human verification.
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/c5909abf-2697-40b2-bb5e-ac3b6f5104d3).
+Freshness check results and approved baselines are stored in browser `localStorage` for the beta/demo. A production version should move these records to durable, auditable server-side storage.
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+## Local development
 
-## Development
+Requirements:
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+- Node.js
+- npm
+
+From the project folder:
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+npm install
 npm run dev
 ```
+
+Open the local URL shown by Vite.
+
+Useful verification commands:
+
+```sh
+npm run test:regression
+npx tsc --noEmit
+npm run build
+```
+
+The regression script checks the final IELTS component logic, including component failure and missing-component cases.
+
+## Important limitations
+
+- Coverage is limited to selected verified IT courses from Monash, RMIT, and Deakin.
+- RMIT academic equivalency may require regional verification.
+- Some official university sites block automated source checks.
+- Freshness persistence uses browser `localStorage` in the beta.
+- Profile persistence and side-by-side comparison remain future improvements.
+
+See `DIARY.md` for the full build journey, AI tool changes, prompt evidence, testing, dead ends, and design decisions.
