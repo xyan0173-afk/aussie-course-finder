@@ -1,6 +1,6 @@
 # CourseCompass AU – Build Diary
 
-> **Diary integrity note (added for final A3 submission):** This diary was kept across the semester. The final A3 instructions ask for AI tool/model and prompt evidence. Where the exact wording of an earlier prompt was not retained, the entry below is explicitly labelled **paraphrased prompt intent** rather than reconstructed as a verbatim quote. Where an AI platform did not expose, or the diary did not retain, the underlying model name, that is stated honestly instead of inventing one.
+> **Diary integrity note:** This diary was kept across the semester. Where the exact wording of an earlier prompt was not retained, the relevant entry is explicitly labelled **paraphrased prompt intent** rather than presented as a verbatim quote. Where an AI platform did not expose, or the diary did not retain, the underlying model name, this is stated honestly rather than reconstructed.
 
 ## Week 6 – 31 August to 4 September 2026
 
@@ -733,6 +733,60 @@ The final changes were committed as `Address final A3 beta validation feedback` 
 
 ChatGPT was used as the AI-assisted development tool to support implementation and review of these final changes after Kiro access was unavailable. The updated files were then manually integrated into the existing project in VS Code, and the team ran the regression tests, TypeScript check and production build before committing and pushing the changes to GitHub and verifying the Vercel deployment. Human judgement was used to assess the feedback, preserve verified course data and decide which changes were appropriate for the MVP scope.
 
+
+## 5 November 2026 – Week 12 Teaching and Pitch Feedback Review
+
+### Goal
+Review the newly published written Week 12 feedback against the final CourseCompass AU MVP, decide what was already addressed, what remained unresolved, and whether any late production-code changes were justified before submission.
+
+### AI tool / model
+ChatGPT (GPT-5.6 Sol) was used as an AI-assisted review and documentation tool to compare the new feedback with the existing MVP, build report and diary. No production code was generated or changed during this review.
+
+### Prompt that mattered
+**Prompt intent:** Compare the newly published Week 12 teaching and pitch feedback with the final CourseCompass AU implementation. Identify what the current MVP already addresses, what remains a limitation, and what should be documented as future work rather than added as an unsupported last-minute change. Preserve the verified course data, deterministic eligibility logic and freshness workflow.
+
+### What came back
+The review identified two new feedback items that needed to be recorded explicitly.
+
+1. **Teaching-team feedback from our Caulfield teacher, Aashish Srivastava:** the project should explain cybersecurity and data protection more clearly, especially how student information would be collected, stored, accessed and protected, including relevant privacy obligations.
+
+2. **Further Week 12 pitch feedback:** the project should explain how it handles different qualification pathways, equivalent credentials and changing university admission requirements. The feedback also suggested regularly updated admission criteria and testing against real admission scenarios.
+
+### Assessment of the cybersecurity and data-protection feedback
+We assessed this feedback as valid. The beta already reduces privacy risk in several ways: testing uses simulated student profiles, and the MVP does not ask for names, email addresses, passport numbers or user accounts. However, the final beta still passes profile values through URL search parameters, and freshness results, human-approved fingerprints and manual-verification records are stored in browser `localStorage`.
+
+These choices are acceptable for a limited classroom beta but are not a suitable production privacy architecture. The feedback therefore exposed a real limitation rather than a hypothetical one.
+
+Because the written feedback appeared after the final build had already been tested and deployed, we did not redesign the storage architecture immediately before submission. A last-minute storage migration would have introduced new implementation and regression risk without enough time for proper validation. Instead, the limitation is stated directly in the build report.
+
+If development continued, the next privacy changes would be to remove student-profile values from URLs, use access-controlled server-side storage only where persistence is necessary, define clear retention and access rules, and document what information is collected and why.
+
+### Assessment of the qualification-pathway and changing-requirements feedback
+We also assessed this feedback as valid. The final MVP already avoids pretending that every qualification pathway can be reduced to one simple threshold. RMIT academic equivalency remains `Needs Verification` because Chinese qualification equivalency can vary by region and cannot safely be represented as one nationwide score.
+
+The existing freshness workflow also addresses part of the changing-requirements problem. Official sources can be checked for apparent changes, but detected changes never overwrite verified course facts automatically. A changed or inaccessible source moves to review, and a human must approve any factual update.
+
+We did not add broader qualification pathways or real-admission-scenario data at the last minute because those additions would require new verified source data, new rules and separate validation. Adding unverified pathways purely to appear more complete would conflict with the project's existing decision to prefer a narrow, trustworthy scope over unsupported coverage.
+
+Future work should therefore expand qualification pathways only when each pathway can be supported by verified official requirements, and should test the rules against a broader set of realistic admission scenarios. Official APIs or university data partnerships would also make changing requirements easier to maintain reliably.
+
+### Decision and update made
+No production MVP code change was made in response to the newly published Week 12 feedback. This was a deliberate decision, not an omission.
+
+The build report was updated so the validation section now records:
+- who provided the new feedback;
+- what was raised;
+- our assessment of its merit;
+- what the existing MVP already addresses;
+- why no late architectural or scope expansion was made; and
+- the concrete production changes or future validation that would follow.
+
+This diary entry was added to keep the feedback, decision and reasoning visible in the project record.
+
+### What broke / was dropped / what we would do differently
+No new production defect was discovered during this review, so nothing was dropped from the working MVP. The main lesson was that privacy architecture and qualification-pathway handling should have been discussed more explicitly earlier, even though the beta already contained conservative behaviours such as `Needs Verification`, manual review and limited data collection.
+
+If repeating the project, we would include privacy/data-flow review and qualification-pathway test cases earlier in the validation plan rather than waiting for final pitch feedback to surface them.
 
 ## Final AI Tool-Switching Summary
 
